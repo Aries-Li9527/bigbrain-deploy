@@ -5,10 +5,8 @@ import Box from '@mui/material/Box';
 import TextField from '@mui/material/TextField';
 import Button from '@mui/material/Button';
 import Typography from '@mui/material/Typography';
-// Import constant for token key
-import AUTH from '../Constant.js';
 
-const SignIn = () => {
+const SignIn = (props) => {
   // 三个状态分别用于收集用户输入的邮箱、密码、用户名
   // States to store user input for email, password, and name
   const [email, setEmail] = useState('');
@@ -32,8 +30,9 @@ const SignIn = () => {
     const data = await res.json()
     if (data.token) {
       console.log("login!")
-      // 保存 token 到本地，用于后续身份验证 // Save token to localStorage for future auth
-      localStorage.setItem(AUTH.TOKEN_KEY, data.token)
+      props.setToken(data.token)
+      // Save token to localStorage for future auth
+      localStorage.setItem('token', data.token);
     }
   }
 
@@ -41,7 +40,7 @@ const SignIn = () => {
     <Container maxWidth="lg">
       <Box sx={{ display: "flex", flexDirection: "column" }}>
         <Typography variant="h1" gutterBottom>
-          Signin form
+          Login form
         </Typography>
 
         {/* Name input */}

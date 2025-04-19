@@ -5,10 +5,8 @@ import Box from '@mui/material/Box';
 import TextField from '@mui/material/TextField';
 import Button from '@mui/material/Button';
 import Typography from '@mui/material/Typography';
-// Import constant for token key
-import AUTH from '../Constant.js';
 
-const SignUp = () => {
+const SignUp = (props) => {
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -29,7 +27,9 @@ const SignUp = () => {
     })
     const data = await res.json()
     if (data.token) {
-      localStorage.setItem(AUTH.TOKEN_KEY, data.token)
+      props.setToken(data.token)
+      // Save token to localStorage for future auth
+      localStorage.setItem('token', data.token);
     }
   }
 
