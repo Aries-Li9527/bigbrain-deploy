@@ -126,7 +126,129 @@ const EditGame = () => {
   // Show loading text if game is not loaded yet
   if (!game) return <Typography sx={{ p: 4 }}>Loading...</Typography>;
 
-  
+  return (
+    <Box sx={{ p: 4 }}>
+      <Typography variant="h4" gutterBottom>Edit Game: {game.name}</Typography>
+
+      {/* Editable metadata form */}
+      <Box sx={{ mb: 4 }}>
+        <Typography variant="h6" gutterBottom>Edit Game Metadata</Typography>
+        <TextField
+          label="Game Name"
+          value={editName}
+          onChange={(e) => setEditName(e.target.value)}
+          sx={{ mr: 2, mb: 2 }}
+        />
+
+        <TextField
+          label="Thumbnail URL"
+          value={editThumbnail}
+          onChange={(e) => setEditThumbnail(e.target.value)}
+          fullWidth
+          sx={{ mt: 2, mb: 2 }}
+        />
+
+        <Button variant="outlined" component="label">
+          Upload Image File
+          <input
+            type="file"
+            hidden
+            accept="image/*"
+            onChange={async (e) => {
+              const file = e.target.files[0];
+              if (file) {
+                const compressed = await compressImage(file);
+                setEditThumbnail(compressed);
+              }
+            }}
+          />
+        </Button>
+
+        {/* Thumbnail preview */}
+        {editThumbnail && (
+          <Box mt={2}>
+            <Typography variant="body2">Thumbnail Preview:</Typography>
+            <Box
+              component="img"
+              src={editThumbnail}
+              alt="Preview"
+              sx={{ height: 100, borderRadius: 1, mt: 1 }}
+            />
+          </Box>
+        )}
+
+        <Box mt={2}>
+          <Button variant="contained" onClick={saveMeta}>
+            Save
+          </Button>
+        </Box>
+      </Box>
+
+      {/* Add new question */}
+      <Box sx={{ mb: 3 }}>
+        <Typography variant="h6">Add New Question</Typography>
+        <Button
+          variant="contained"
+          onClick={() => {
+            const local = JSON.parse(localStorage.getItem(`questions-${gameId}`) || '[]');
+            const nextIndex = local.length;
+            navigate(`/game/${gameId}/question/${nextIndex}`);
+          }}
+        >
+          Add New Question
+        </Button>
+      </Box>
+
+      {/* List of existing questions */}
+      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+        {game.questions?.map((q, index) => (
+          <Card key={index} variant="outlined">
+            <CardContent>
+              <Typography>Q{index + 1}: {q.text || '[Untitled]'}</Typography>
+              <Typography>Time: {q.time || 0} seconds</Typography>
+
+              {/* Video link display */}
+              {q.video && (
+                <Typography sx={{ mt: 1 }}>
+                  Video: <a href={q.video} target="_blank" rel="noopener noreferrer">{q.video}</a>
+                </Typography>
+              )}
+
+              {/* Image URL display */}
+              {q.image && (
+                <Typography sx={{ mt: 1 }}>
+                  Image URL: <a href={q.image} target="_blank" rel="noopener noreferrer">{q.image}</a>
+                </Typography>
+              )}
+            </CardContent>
+
+            <CardActions>
+              <Button
+                size="small"
+                onClick={() => navigate(`/game/${gameId}/question/${index}`)}
+              >
+                Edit
+              </Button>
+              <Button
+                size="small"
+                color="error"
+                onClick={() => deleteQuestion(index)}
+              >
+                Delete
+              </Button>
+            </CardActions>
+          </Card>
+        ))}
+      </Box>
+
+      {/* Back navigation */}
+      <Box sx={{ mt: 4 }}>
+        <Button variant="contained" color="secondary" onClick={() => navigate('/dashboard')}>
+          Back to Dashboard
+        </Button>
+      </Box>
+    </Box>
+  );
 };
 
 export default EditGame;
