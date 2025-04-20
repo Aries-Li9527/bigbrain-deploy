@@ -1,4 +1,5 @@
-// Constant for storing token in localStorage
+// AUTH constant object to manage localStorage key names
+
 const AUTH = {
   TOKEN_KEY: 'token',
 };

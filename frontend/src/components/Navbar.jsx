@@ -5,13 +5,13 @@ import Typography from '@mui/material/Typography';
 import Button from '@mui/material/Button';
 import IconButton from '@mui/material/IconButton';
 import { Link } from 'react-router-dom';
+import AUTH from '../Constant';
 
 const Navbar = (props) => {
-  // 登出功能：
   // Logout function: clear token and update state
   const logout = () => {
     props.setToken(null)
-    localStorage.removeItem('token');
+    localStorage.removeItem(AUTH.TOKEN_KEY);
   }
 
   return (
@@ -35,12 +35,12 @@ const Navbar = (props) => {
           {/* Conditional rendering of buttons */}
           {props.token === null ? (
             <>
-              {/* 未登录时显示登录和注册按钮 // Show Login and Register when not logged in */}
+              {/* Show Login and Register when not logged in */}
               <Button color="inherit" component={Link} to="/login">Login</Button>
               <Button color="inherit" component={Link} to="/register">Register</Button>
             </>
           ) : (
-            // 已登录显示登出按钮 // Show Logout button when logged in
+            // Show Logout button when logged in
             <Button color="inherit" onClick={logout}>Logout</Button>
           )}
         </Toolbar>
