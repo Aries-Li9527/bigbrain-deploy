@@ -1,18 +1,33 @@
-// Register Component 注册组件 
+// Register Component 
 import { useState } from 'react';
 import { Container } from '@mui/material';
 import Box from '@mui/material/Box';
 import TextField from '@mui/material/TextField';
 import Button from '@mui/material/Button';
 import Typography from '@mui/material/Typography';
+import { useNavigate } from 'react-router-dom';
+import AUTH from '../Constant';
+import Snackbar from '@mui/material/Snackbar';
+import Alert from '@mui/material/Alert';
 
 const SignUp = (props) => {
-
+  // State to store form inputs
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [name, setName] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [error, setError] = useState('')
+  const [open, setOpen] = useState(false);
+  const navigate = useNavigate();
 
+  // Register function to handle registration request
   const register = async () => {
+    // Frontend validation before sending request
+    if (!name) return handleError('Please enter your name.');
+    if (!email || !email.includes('@')) return handleError('Please enter a valid email.');
+    if (!password) return handleError('Please enter your password.');
+    if (password !== confirmPassword) return handleError('Passwords do not match.');
+    // Send POST request to backend for registration
     const url = 'http://localhost:5005/admin/auth/register'
     const res = await fetch(url, {
       method: 'post',
@@ -26,16 +41,65 @@ const SignUp = (props) => {
       }),
     })
     const data = await res.json()
+    // If success, store token & navigate
     if (data.token) {
       props.setToken(data.token)
       // Save token to localStorage for future auth
-      localStorage.setItem('token', data.token);
+      localStorage.setItem(AUTH.TOKEN_KEY, data.token);
+      navigate('/')
+    } else {
+      handleError(data.error || "Register failed");
     }
   }
 
+  // Handle error: set error message and open the Snackbar
+  const handleError = (message) => {
+    setError(message);
+    setOpen(true);
+  };
+
+  // Close the Snackbar
+  const handleClose = (event, reason) => {
+    if (reason === 'clickaway') return;
+    setOpen(false);
+  };
+
   return (
     <Container maxWidth="lg">
-      <Box sx={{ display: "flex", flexDirection: "column" }}>
+      {/* Snackbar component for displaying error messages */}
+      <Snackbar
+        open={open}
+        autoHideDuration={4000}
+        onClose={handleClose}
+        anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+        sx={{ zIndex: (theme) => theme.zIndex.snackbar + 10 }}
+      >
+        {/* Alert component showing the actual error text */}
+        <Alert
+          onClose={handleClose}
+          severity="error"
+          variant="filled"
+          sx={{
+            width: '100%',
+            fontSize: '1.5rem',
+            padding: '1.5rem',
+            fontWeight: 'bold',
+            borderRadius: '8px'
+          }}
+        >
+          {error}
+        </Alert>
+      </Snackbar>
+
+      {/* Container for the registration form */}
+      <Box
+        component="form"
+        onSubmit={(e) => {
+          e.preventDefault();
+          register();
+        }}
+        sx={{ display: "flex", flexDirection: "column" }}
+      >
         <Typography variant="h1" gutterBottom>
           Register form
         </Typography>
@@ -43,7 +107,7 @@ const SignUp = (props) => {
         {/* Name input */}
         <TextField
           required
-          id="outlined-required"
+          id="name-input"
           label="name"
           onChange={(e) => setName(e.target.value)}
         />
@@ -53,7 +117,7 @@ const SignUp = (props) => {
         {/* Email input */}
         <TextField
           required
-          id="outlined-required"
+          id="email-input"
           label="email"
           onChange={(e) => setEmail(e.target.value)}
         />
@@ -63,7 +127,8 @@ const SignUp = (props) => {
         {/* Password input */}
         <TextField
           required
-          id="outlined-required"
+          type="password"
+          id="password-input"
           label="password"
           onChange={(e) => setPassword(e.target.value)}
         />
@@ -73,15 +138,16 @@ const SignUp = (props) => {
         {/* confirm password input */}
         <TextField
           required
-          id="outlined-required"
+          type="password"
+          id="confirm-password-input"
           label="confirm password"
-        //onChange={(e) => setPassword(e.target.value)}
+          onChange={(e) => setConfirmPassword(e.target.value)}
         />
         <br>
         </br>
 
         {/* Submit button */}
-        <Button variant="contained" onClick={register}>submit</Button>
+        <Button variant="contained" type="submit">submit</Button>
       </Box>
     </Container>
   )
