@@ -1,24 +1,20 @@
-// SignIn Component 
 import { useState } from 'react';
-import { Container } from '@mui/material';
-import Box from '@mui/material/Box';
-import TextField from '@mui/material/TextField';
-import Button from '@mui/material/Button';
-import Typography from '@mui/material/Typography';
+import {
+  Container, Box, TextField, Button,
+  Typography, Snackbar, Alert
+} from '@mui/material';
 import { useNavigate } from 'react-router-dom';
-import Snackbar from '@mui/material/Snackbar';
-import Alert from '@mui/material/Alert';
 import AUTH from '../Constant';
 
 const SignIn = (props) => {
-  // States to store user input for email, password
+  // States for user input and error handling
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [error, setError] = useState('')
+  const [error, setError] = useState('');
   const [open, setOpen] = useState(false);
   const navigate = useNavigate();
 
-  // Login function to handle registration request
+  // Login handler
   const login = async () => {
     try {
       const url = 'http://localhost:5005/admin/auth/login';
@@ -38,22 +34,25 @@ const SignIn = (props) => {
       }
 
       if (data.token) {
-        props.setToken(data.token);
+        props?.setToken?.(data.token);
         localStorage.setItem(AUTH.TOKEN_KEY, data.token);
-        navigate('/');
+        localStorage.setItem('email', email);
+        navigate('/dashboard');
+      } else {
+        handleError(data.error || 'Login failed.');
       }
     } catch (_) {
       handleError('Network error. Please check your connection.');
     }
   };
 
-  // Handle error: set error message and open the Snackbar
+  // Display error via Snackbar
   const handleError = (message) => {
     setError(message);
     setOpen(true);
   };
 
-  // Close the Snackbar
+  // Close Snackbar
   const handleClose = (event, reason) => {
     if (reason === 'clickaway') return;
     setOpen(false);
@@ -61,8 +60,7 @@ const SignIn = (props) => {
 
   return (
     <Container maxWidth="lg">
-
-      {/* Snackbar component for displaying error messages */}
+      {/* Error Snackbar */}
       <Snackbar
         open={open}
         autoHideDuration={4000}
@@ -70,7 +68,6 @@ const SignIn = (props) => {
         anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
         sx={{ zIndex: (theme) => theme.zIndex.snackbar + 10 }}
       >
-        {/* Alert component showing the actual error text */}
         <Alert
           onClose={handleClose}
           severity="error"
@@ -87,6 +84,7 @@ const SignIn = (props) => {
         </Alert>
       </Snackbar>
 
+      {/* Login Form */}
       <Box
         component="form"
         onSubmit={(e) => {
@@ -95,33 +93,33 @@ const SignIn = (props) => {
         }}
         sx={{ display: "flex", flexDirection: "column" }}
       >
-
         <Typography variant="h1" gutterBottom>
-          Login form
+          Sign In
         </Typography>
 
         {/* Email input */}
         <TextField
           required
           id="email-input"
-          label="email"
+          label="Email"
           onChange={(e) => setEmail(e.target.value)}
         />
-        <br>
-        </br>
+        <br />
 
         {/* Password input */}
         <TextField
           required
           id="password-input"
-          label="password"
+          label="Password"
+          type="password"
           onChange={(e) => setPassword(e.target.value)}
         />
-        <br>
-        </br>
+        <br />
 
         {/* Submit button */}
-        <Button variant="contained" type="submit">submit</Button>
+        <Button variant="contained" type="submit">
+          Submit
+        </Button>
       </Box>
     </Container>
   );
