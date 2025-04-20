@@ -1,62 +1,109 @@
-// SignIn Component 登录组件 
+// SignIn Component 
 import { useState } from 'react';
 import { Container } from '@mui/material';
 import Box from '@mui/material/Box';
 import TextField from '@mui/material/TextField';
 import Button from '@mui/material/Button';
 import Typography from '@mui/material/Typography';
+import { useNavigate } from 'react-router-dom';
+import Snackbar from '@mui/material/Snackbar';
+import Alert from '@mui/material/Alert';
+import AUTH from '../Constant';
 
 const SignIn = (props) => {
-  // 三个状态分别用于收集用户输入的邮箱、密码、用户名
-  // States to store user input for email, password, and name
+  // States to store user input for email, password
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [name, setName] = useState('');
-  // 登录逻辑：发送 POST 请求，获取 token 并存入 localStorage
-  // Login function: send POST request, receive token, store in localStorage
+  const [error, setError] = useState('')
+  const [open, setOpen] = useState(false);
+  const navigate = useNavigate();
+
+  // Login function to handle registration request
   const login = async () => {
-    const url = 'http://localhost:5005/admin/auth/login'
-    const res = await fetch(url, {
-      method: 'post',
-      headers: {
-        'content-type': 'application/json',
-      },
-      body: JSON.stringify({
-        email,
-        password,
-        name
-      }),
-    })
-    const data = await res.json()
-    if (data.token) {
-      console.log("login!")
-      props.setToken(data.token)
-      // Save token to localStorage for future auth
-      localStorage.setItem('token', data.token);
+    try {
+      const url = 'http://localhost:5005/admin/auth/login';
+      const res = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'content-type': 'application/json',
+        },
+        body: JSON.stringify({ email, password }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        handleError(data.error || 'Login failed.');
+        return;
+      }
+
+      if (data.token) {
+        props.setToken(data.token);
+        localStorage.setItem(AUTH.TOKEN_KEY, data.token);
+        navigate('/');
+      }
+    } catch (_) {
+      handleError('Network error. Please check your connection.');
     }
-  }
+  };
+
+  // Handle error: set error message and open the Snackbar
+  const handleError = (message) => {
+    setError(message);
+    setOpen(true);
+  };
+
+  // Close the Snackbar
+  const handleClose = (event, reason) => {
+    if (reason === 'clickaway') return;
+    setOpen(false);
+  };
 
   return (
     <Container maxWidth="lg">
-      <Box sx={{ display: "flex", flexDirection: "column" }}>
+
+      {/* Snackbar component for displaying error messages */}
+      <Snackbar
+        open={open}
+        autoHideDuration={4000}
+        onClose={handleClose}
+        anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+        sx={{ zIndex: (theme) => theme.zIndex.snackbar + 10 }}
+      >
+        {/* Alert component showing the actual error text */}
+        <Alert
+          onClose={handleClose}
+          severity="error"
+          variant="filled"
+          sx={{
+            width: '100%',
+            fontSize: '1.5rem',
+            padding: '1.5rem',
+            fontWeight: 'bold',
+            borderRadius: '8px'
+          }}
+        >
+          {error}
+        </Alert>
+      </Snackbar>
+
+      <Box
+        component="form"
+        onSubmit={(e) => {
+          e.preventDefault();
+          login();
+        }}
+        sx={{ display: "flex", flexDirection: "column" }}
+      >
+
         <Typography variant="h1" gutterBottom>
           Login form
         </Typography>
 
-        {/* Name input */}
-        <TextField
-          required
-          id="outlined-required"
-          label="name"
-          onChange={(e) => setName(e.target.value)}
-        />
-        <br>
-        </br>
-
         {/* Email input */}
         <TextField
           required
-          id="outlined-required"
+          id="email-input"
           label="email"
           onChange={(e) => setEmail(e.target.value)}
         />
@@ -66,7 +113,7 @@ const SignIn = (props) => {
         {/* Password input */}
         <TextField
           required
-          id="outlined-required"
+          id="password-input"
           label="password"
           onChange={(e) => setPassword(e.target.value)}
         />
@@ -74,7 +121,7 @@ const SignIn = (props) => {
         </br>
 
         {/* Submit button */}
-        <Button variant="contained" onClick={login}>submit</Button>
+        <Button variant="contained" type="submit">submit</Button>
       </Box>
     </Container>
   );
