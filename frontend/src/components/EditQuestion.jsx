@@ -159,7 +159,141 @@ const EditQuestion = () => {
     }
   };
 
-  
+  return (
+    <Box sx={{ p: 4 }}>
+      <Typography variant="h4">Edit Question</Typography>
+
+      {/* Question text input */}
+      <TextField fullWidth label="Question Text" sx={{ my: 2 }}
+        value={question.text} onChange={(e) => setQuestion({ ...question, text: e.target.value })} />
+
+      {/* Question type dropdown */}
+      <FormControl fullWidth sx={{ mb: 2 }}>
+        <InputLabel>Question Type</InputLabel>
+        <Select value={question.type} label="Question Type"
+          onChange={(e) => {
+            const type = e.target.value;
+            let answers = question.answers;
+            if (type === 'judgement') {
+              answers = [
+                { text: 'True', correct: true },
+                { text: 'False', correct: false }
+              ];
+            } else if (answers.length < 2) {
+              answers = [...answers, { text: '', correct: false }];
+            }
+            setQuestion({ ...question, type, answers });
+          }}>
+          <MenuItem value="single">Single Choice</MenuItem>
+          <MenuItem value="multiple">Multiple Choice</MenuItem>
+          <MenuItem value="judgement">Judgement</MenuItem>
+        </Select>
+      </FormControl>
+
+      {/* Time and points input */}
+      <TextField fullWidth label="Time Limit (seconds)" type="number" sx={{ mb: 2 }}
+        value={question.time} onChange={(e) => setQuestion({ ...question, time: parseInt(e.target.value) })} />
+      <TextField fullWidth label="Points" type="number" sx={{ mb: 2 }}
+        value={question.points} onChange={(e) => setQuestion({ ...question, points: parseInt(e.target.value) })} />
+
+      {/* YouTube URL */}
+      <TextField fullWidth label="YouTube Video URL" sx={{ mb: 2 }}
+        value={question.video} onChange={(e) => setQuestion({ ...question, video: e.target.value })} />
+
+      {/* Image upload */}
+      <Button component="label" variant="outlined" sx={{ mb: 2 }}>
+        Upload Image
+        <input type="file" hidden accept="image/*"
+          onChange={(e) => {
+            const file = e.target.files[0];
+            if (file) {
+              const reader = new FileReader();
+              reader.onloadend = () =>
+                setQuestion(prev => ({ ...prev, image: reader.result }));
+              reader.readAsDataURL(file);
+            }
+          }}
+        />
+      </Button>
+
+      {/* Image preview and clear button */}
+      {question.image && (
+        <>
+          <Box mt={2}>
+            <Typography variant="body2">Image Preview:</Typography>
+            <Box
+              component="img"
+              src={question.image}
+              alt="Preview"
+              sx={{ height: 100, borderRadius: 1, mt: 1 }}
+            />
+          </Box>
+          <Button
+            variant="outlined"
+            color="error"
+            sx={{ mt: 1 }}
+            onClick={() => setQuestion(prev => ({ ...prev, image: '' }))}
+          >
+            Clear Image
+          </Button>
+        </>
+      )}
+
+      {/* Answer options section */}
+      <Typography variant="h6" mt={3}>Answers</Typography>
+
+      {question.answers.map((a, i) => (
+        <Box key={i} sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
+          <TextField label={`Answer ${i + 1}`} value={a.text}
+            onChange={(e) => handleAnswerChange(i, 'text', e.target.value)} sx={{ mr: 2, flex: 1 }} />
+
+          {/* Radio for judgement, checkbox for others */}
+          {question.type === 'judgement' ? (
+            <FormControlLabel
+              control={<Radio checked={a.correct} onChange={() => {
+                const updated = question.answers.map((ans, idx) => ({
+                  ...ans, correct: idx === i
+                }));
+                setQuestion({ ...question, answers: updated });
+              }} />}
+              label="This is the answer"
+            />
+          ) : (
+            <FormControlLabel
+              control={<Checkbox checked={a.correct}
+                onChange={(e) => {
+                  const updated = [...question.answers];
+                  if (question.type === 'single') {
+                    updated.forEach((_, idx) => updated[idx].correct = false);
+                    updated[i].correct = true;
+                  } else {
+                    updated[i].correct = e.target.checked;
+                  }
+                  setQuestion({ ...question, answers: updated });
+                }} />}
+              label="Correct"
+            />
+          )}
+
+          {/* Delete option button */}
+          {question.type !== 'judgement' && (
+            <IconButton onClick={() => deleteAnswer(i)}><Delete /></IconButton>
+          )}
+        </Box>
+      ))}
+
+      {/* Add new answer button */}
+      {question.type !== 'judgement' && question.answers.length < 6 && (
+        <Button onClick={addAnswer} sx={{ mt: 1 }}>Add Option</Button>
+      )}
+
+      {/* Action buttons */}
+      <Box mt={4}>
+        <Button variant="contained" onClick={updateGame}>Save</Button>
+        <Button variant="text" sx={{ ml: 2 }} onClick={() => navigate(`/game/${gameId}`)}>Cancel</Button>
+      </Box>
+    </Box>
+  );
 };
 
 export default EditQuestion;
