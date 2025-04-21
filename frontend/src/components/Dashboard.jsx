@@ -225,30 +225,30 @@ const Dashboard = () => {
       </Box>
     </Box>
 
-      <Dialog
-        open={deleteDialogOpen}
-        onClose={() => setDeleteDialogOpen(false)}
-      >
-        <DialogTitle>Delete Game</DialogTitle>
-        <DialogContent>
-          <DialogContentText>
-            Are you sure you want to delete the game "{gameToDelete?.name}"?
-          </DialogContentText>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setDeleteDialogOpen(false)}>Cancel</Button>
-          <Button
-            color="error"
-            onClick={async () => {
-              await deleteGame(gameToDelete.id);
-              setDeleteDialogOpen(false);
-              setGameToDelete(null);
-            }}
-          >
+    <Dialog
+      open={deleteDialogOpen}
+      onClose={() => setDeleteDialogOpen(false)}
+    >
+      <DialogTitle>Delete Game</DialogTitle>
+      <DialogContent>
+        <DialogContentText>
+        Are you sure you want to delete the game &quot;{gameToDelete?.name}&quot;?
+        </DialogContentText>
+      </DialogContent>
+      <DialogActions>
+        <Button onClick={() => setDeleteDialogOpen(false)}>Cancel</Button>
+        <Button
+          color="error"
+          onClick={async () => {
+            await deleteGame(gameToDelete.id);
+            setDeleteDialogOpen(false);
+            setGameToDelete(null);
+          }}
+        >
             Confirm Delete
-          </Button>
-        </DialogActions>
-      </Dialog></>
+        </Button>
+      </DialogActions>
+    </Dialog></>
   );
 };
 

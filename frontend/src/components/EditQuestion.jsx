@@ -12,8 +12,6 @@ const EditQuestion = () => {
   const navigate = useNavigate();
 
   // State for game info, all user games, and the current question
-  const [game, setGame] = useState(null);
-  const [allGames, setAllGames] = useState([]);
   const [question, setQuestion] = useState({
     text: '',
     type: 'single',
@@ -45,9 +43,6 @@ const EditQuestion = () => {
       if (target && !Array.isArray(target.questions)) {
         target.questions = [];
       }
-
-      setAllGames(owned);
-      setGame(target);
 
       // Load existing question if it exists
       const existing = target?.questions?.[questionId];

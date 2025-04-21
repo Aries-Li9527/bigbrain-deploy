@@ -46,7 +46,7 @@ const SignUp = (props) => {
       props.setToken(data.token)
       // Save token to localStorage for future auth
       localStorage.setItem(AUTH.TOKEN_KEY, data.token);
-      navigate('/')
+      navigate('/dashboard');
     } else {
       handleError(data.error || "Register failed");
     }

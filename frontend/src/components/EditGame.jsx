@@ -18,7 +18,6 @@ const EditGame = () => {
   const location = useLocation();
 
   const [game, setGame] = useState(null); // Current game object
-  const [allGames, setAllGames] = useState([]); // All games owned by the user
   const [editName, setEditName] = useState(''); // Game name to be edited
   const [editThumbnail, setEditThumbnail] = useState(''); // Game thumbnail to be edited
 
@@ -58,7 +57,6 @@ const EditGame = () => {
     const data = await res.json();
 
     const owned = data.games.filter(g => g.owner === ownerEmail);
-    setAllGames(owned);
 
     const current = owned.find(g => g.id.toString() === gameId);
 
@@ -80,64 +78,64 @@ const EditGame = () => {
   }, [location.pathname]);
 
   // Update a specific game (by ID) and save the full games list to the backend
-const updateGame = async (updatedGame) => {
-  const token = localStorage.getItem(AUTH.TOKEN_KEY);
-  const tempKey = `questions-${gameId}`; // LocalStorage key for this game's questions
-  const localQuestions = JSON.parse(localStorage.getItem(tempKey) || '[]');
+  const updateGame = async (updatedGame) => {
+    const token = localStorage.getItem(AUTH.TOKEN_KEY);
+    const tempKey = `questions-${gameId}`; // LocalStorage key for this game's questions
+    const localQuestions = JSON.parse(localStorage.getItem(tempKey) || '[]');
 
-  // Compose the updated game with local questions included
-  const finalGame = {
-    ...updatedGame,
-    questions: localQuestions,
-  };
-
-  // Fetch all existing games from the backend
-  const resAll = await fetch('http://localhost:5005/admin/games', {
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-  });
-
-  const data = await resAll.json();
-  const backendGames = data.games || [];
-
-  // Merge all games — keeping local questions if available
-  const mergedGames = backendGames.map(g => {
-    const key = `questions-${g.id}`;
-    const local = JSON.parse(localStorage.getItem(key) || '[]');
-
-    // Replace the target game with the updated one
-    if (g.id.toString() === gameId) {
-      return finalGame;
-    }
-
-    // Preserve local questions for other games if available
-    return {
-      ...g,
-      questions: local.length > 0 ? local : (g.questions || []),
+    // Compose the updated game with local questions included
+    const finalGame = {
+      ...updatedGame,
+      questions: localQuestions,
     };
-  });
 
-  // PUT the updated full games list back to backend
-  const res = await fetch('http://localhost:5005/admin/games', {
-    method: 'PUT',
-    headers: {
-      Authorization: `Bearer ${token}`,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({ games: mergedGames }),
-  });
+    // Fetch all existing games from the backend
+    const resAll = await fetch('http://localhost:5005/admin/games', {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
 
-  // If update succeeds, refetch game and notify user
-  if (res.ok) {
-    await fetchGame(); // Refresh the current game data from backend
-    alert('Game saved successfully!');
-  } else {
-    const err = await res.text();
-    console.error('Update failed:', err); // Log error if update fails
-    alert('Failed to update game.');
-  }
-};
+    const data = await resAll.json();
+    const backendGames = data.games || [];
+
+    // Merge all games — keeping local questions if available
+    const mergedGames = backendGames.map(g => {
+      const key = `questions-${g.id}`;
+      const local = JSON.parse(localStorage.getItem(key) || '[]');
+
+      // Replace the target game with the updated one
+      if (g.id.toString() === gameId) {
+        return finalGame;
+      }
+
+      // Preserve local questions for other games if available
+      return {
+        ...g,
+        questions: local.length > 0 ? local : (g.questions || []),
+      };
+    });
+
+    // PUT the updated full games list back to backend
+    const res = await fetch('http://localhost:5005/admin/games', {
+      method: 'PUT',
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ games: mergedGames }),
+    });
+
+    // If update succeeds, refetch game and notify user
+    if (res.ok) {
+      await fetchGame(); // Refresh the current game data from backend
+      alert('Game saved successfully!');
+    } else {
+      const err = await res.text();
+      console.error('Update failed:', err); // Log error if update fails
+      alert('Failed to update game.');
+    }
+  };
 
   // Delete question from local storage
   const deleteQuestion = (index) => {
