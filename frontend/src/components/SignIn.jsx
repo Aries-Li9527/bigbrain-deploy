@@ -1,10 +1,13 @@
 import { useState } from 'react';
-import {
-  Container, Box, TextField, Button,
-  Typography, Snackbar, Alert
-} from '@mui/material';
-import { useNavigate } from 'react-router-dom';
 import AUTH from '../Constant';
+import { Container } from '@mui/material';
+import Box from '@mui/material/Box';
+import TextField from '@mui/material/TextField';
+import Button from '@mui/material/Button';
+import Typography from '@mui/material/Typography';
+import { useNavigate } from 'react-router-dom';
+import Snackbar from '@mui/material/Snackbar';
+import Alert from '@mui/material/Alert';
 
 const SignIn = (props) => {
   // States for user input and error handling
@@ -36,7 +39,7 @@ const SignIn = (props) => {
       if (data.token) {
         props?.setToken?.(data.token);
         localStorage.setItem(AUTH.TOKEN_KEY, data.token);
-        localStorage.setItem('email', email);
+        localStorage.setItem(AUTH.USER_KEY, email);
         navigate('/dashboard');
       } else {
         handleError(data.error || 'Login failed.');
