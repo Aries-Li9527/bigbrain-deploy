@@ -56,33 +56,47 @@ const Dashboard = () => {
   }, [location.pathname]);
 
   // Create a new game and save to backend
+  // Create a new game and upload the updated list to the backend
   const createGame = async () => {
+    // Retrieve the user's token and email from localStorage
     const token = localStorage.getItem(AUTH.TOKEN_KEY);
     const ownerEmail = localStorage.getItem('email');
 
-    // Get current list of games
-    const getRes = await fetch('http://localhost:5005/admin/games', {
+    // Fetch all games from the backend
+    const res = await fetch('http://localhost:5005/admin/games', {
       headers: {
         Authorization: `Bearer ${token}`,
       },
     });
-    const gameList = await getRes.json();
-    const gamesArray = gameList.games || [];
-    const myGames = gamesArray.filter(game => game.owner === ownerEmail);
+    const data = await res.json();
+    const allGames = data.games || [];
 
-    // Define new game object
+    // Filter only the games owned by the current user
+    const myGames = allGames.filter(g => g.owner === ownerEmail);
+
+    // Restore questions from localStorage for each game if available
+    const gamesWithQuestions = myGames.map(game => {
+      const local = JSON.parse(localStorage.getItem(`questions-${game.id}`) || '[]');
+      return {
+        ...game,
+        questions: local.length > 0 ? local : game.questions || [],
+      };
+    });
+
+    // Step 4: Create a new game object
     const newGame = {
-      id: Math.floor(Math.random() * 10000000),
-      name: newGameName,
-      owner: ownerEmail,
-      thumbnail: '',
-      questions: [],
-      active: false,
+      id: Math.floor(Math.random() * 10000000), // Randomly generate a unique ID
+      name: newGameName,                        // Use the inputted game name
+      owner: ownerEmail,                        // Set the current user as owner
+      thumbnail: '',                            // Default empty thumbnail
+      questions: [],                            // Start with no questions
+      active: false,                            // Default to inactive
     };
 
-    const updatedGames = [...myGames, newGame];
+    // Combine existing games with the new game
+    const updatedGames = [...gamesWithQuestions, newGame];
 
-    // Save updated list of games to backend
+    // Save the updated games list to the backend using PUT
     const putRes = await fetch('http://localhost:5005/admin/games', {
       method: 'PUT',
       headers: {
@@ -92,30 +106,47 @@ const Dashboard = () => {
       body: JSON.stringify({ games: updatedGames }),
     });
 
+    // If successful, refresh game list and clear input field
     if (putRes.ok) {
-      await fetchGames(); // Refresh game list
-      setNewGameName(''); // Clear input field
+      await fetchGames();        // Refresh the games shown on the dashboard
+      setNewGameName('');        // Clear the input field
     } else {
       const err = await putRes.text();
-      console.error('Creation failed:', err);
+      console.error('Creation failed:', err);  // Log any errors
     }
   };
 
-  // Delete a game by its ID
+
+  // Delete a game by its ID and update the backend accordingly
   const deleteGame = async (id) => {
+    // Retrieve the user's token and email
     const token = localStorage.getItem(AUTH.TOKEN_KEY);
     const ownerEmail = localStorage.getItem('email');
 
+    // Fetch all games from the backend
     const res = await fetch('http://localhost:5005/admin/games', {
       headers: {
         Authorization: `Bearer ${token}`,
       },
     });
     const allGames = await res.json();
-    const myGames = allGames.games.filter(game => game.owner === ownerEmail);
-    const updatedGames = myGames.filter(game => game.id !== id);
 
-    // Save updated list after deletion
+    // Filter games that belong to the current user
+    const myGames = allGames.games.filter(game => game.owner === ownerEmail);
+
+    // Ensure each game keeps any locally stored questions
+    const gamesWithPreservedQuestions = myGames.map(game => {
+      const local = JSON.parse(localStorage.getItem(`questions-${game.id}`) || '[]');
+      return {
+        ...game,
+        questions: local.length > 0 ? local : game.questions || [],
+      };
+    });
+
+    // Filter out the game to be deleted
+    const updatedGames = gamesWithPreservedQuestions.filter(game => game.id !== id);
+
+    // Send the updated game list to the backend
     const putRes = await fetch('http://localhost:5005/admin/games', {
       method: 'PUT',
       headers: {
@@ -125,13 +156,16 @@ const Dashboard = () => {
       body: JSON.stringify({ games: updatedGames }),
     });
 
+    // If successful, update frontend and remove local storage entry
     if (putRes.ok) {
-      setGames(updatedGames); // Update frontend state
+      setGames(updatedGames);                         // Update state to reflect deletion
+      localStorage.removeItem(`questions-${id}`);     // Clean up any locally cached questions
     } else {
       const err = await putRes.text();
-      console.error('Deletion failed:', err);
+      console.error('Deletion failed:', err);         // Log error if PUT fails
     }
   };
+
 
   return (
     <><Box sx={{ p: 4 }}>
@@ -182,7 +216,7 @@ const Dashboard = () => {
                 e.stopPropagation();
                 setGameToDelete(game);
                 setDeleteDialogOpen(true);
-              } }
+              }}
             >
               Delete Game
             </Button>
@@ -191,14 +225,14 @@ const Dashboard = () => {
       </Box>
     </Box>
 
-    <Dialog
-      open={deleteDialogOpen}
-      onClose={() => setDeleteDialogOpen(false)}
-    >
+      <Dialog
+        open={deleteDialogOpen}
+        onClose={() => setDeleteDialogOpen(false)}
+      >
         <DialogTitle>Delete Game</DialogTitle>
         <DialogContent>
           <DialogContentText>
-            Are you sure you want to delete the game "{gameToDelete?.name}"? 
+            Are you sure you want to delete the game "{gameToDelete?.name}"?
           </DialogContentText>
         </DialogContent>
         <DialogActions>
@@ -209,7 +243,7 @@ const Dashboard = () => {
               await deleteGame(gameToDelete.id);
               setDeleteDialogOpen(false);
               setGameToDelete(null);
-            } }
+            }}
           >
             Confirm Delete
           </Button>
