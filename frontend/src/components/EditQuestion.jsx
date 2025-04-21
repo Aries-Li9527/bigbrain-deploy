@@ -80,7 +80,7 @@ const EditQuestion = () => {
   // Save changes to backend and localStorage
   const updateGame = async () => {
     const qIndex = Number(questionId);
-
+  
     // Validation checks
     if (!question.text.trim()) {
       alert('Question text cannot be empty.');
@@ -94,7 +94,7 @@ const EditQuestion = () => {
       alert('All answers cannot be empty.');
       return;
     }
-
+  
     const correctCount = question.answers.filter(ans => ans.correct).length;
     if (question.type === 'single' && correctCount !== 1) {
       alert('Single choice question must have exactly one correct answer.');
@@ -104,34 +104,40 @@ const EditQuestion = () => {
       alert('Multiple choice question must have at least two correct answers.');
       return;
     }
-
-    // Merge current edits with original question
-    const original = game.questions?.[qIndex] || {};
+  
+    // Merge question
     const updatedQuestion = {
-      ...original,
       ...question,
       ...(question.type === 'judgement' && {
         answers: [
           { text: 'True', correct: question.answers[0]?.correct || false },
           { text: 'False', correct: question.answers[1]?.correct || false }
         ]
-      }),
+      })
     };
-
-    // Update questions array
-    const updatedQuestions = [...(game.questions || [])];
+  
+    // Load & update localStorage
+    const tempKey = `questions-${gameId}`;
+    const existingQuestions = JSON.parse(localStorage.getItem(tempKey) || '[]');
+    const updatedQuestions = [...existingQuestions];
     if (qIndex >= updatedQuestions.length) {
       updatedQuestions.push(updatedQuestion);
     } else {
       updatedQuestions[qIndex] = updatedQuestion;
     }
-
+  
+    // Save to localStorage
+    localStorage.setItem(tempKey, JSON.stringify(updatedQuestions));
+  
     // Save to backend
-    const updatedGame = { ...game, questions: updatedQuestions };
+    const updatedGame = {
+      ...game,
+      questions: updatedQuestions
+    };
     const updatedGames = allGames.map(g =>
-      g.id === Number(gameId) ? updatedGame : g
+      g.id.toString() === gameId ? updatedGame : g
     );
-
+  
     const res = await fetch('http://localhost:5005/admin/games', {
       method: 'PUT',
       headers: {
@@ -140,24 +146,16 @@ const EditQuestion = () => {
       },
       body: JSON.stringify({ games: updatedGames }),
     });
-
-    // Save to localStorage & navigate on success
+  
     if (res.ok) {
-      const tempKey = `questions-${gameId}`;
-      const existing = JSON.parse(localStorage.getItem(tempKey) || '[]');
-      if (qIndex >= existing.length) {
-        existing.push(updatedQuestion);
-      } else {
-        existing[qIndex] = updatedQuestion;
-      }
-      const shallowCopy = structuredClone(existing);
-      shallowCopy[qIndex].image = ''; 
-      localStorage.setItem(tempKey, JSON.stringify(shallowCopy));
-
-      alert('Question published successfully.');
+      alert('Question saved and synced to server.');
       navigate(`/game/${gameId}`, { replace: true });
+    } else {
+      const err = await res.text();
+      alert('Failed to save question:\n' + err);
     }
   };
+  
 
   return (
     <Box sx={{ p: 4 }}>
@@ -289,7 +287,7 @@ const EditQuestion = () => {
 
       {/* Action buttons */}
       <Box mt={4}>
-        <Button variant="contained" onClick={updateGame}>Save</Button>
+        <Button variant="contained" onClick={updateGame}>Submit</Button>
         <Button variant="text" sx={{ ml: 2 }} onClick={() => navigate(`/game/${gameId}`)}>Cancel</Button>
       </Box>
     </Box>

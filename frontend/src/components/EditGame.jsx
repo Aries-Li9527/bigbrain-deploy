@@ -81,8 +81,18 @@ const EditGame = () => {
 
   // Update game metadata (name & thumbnail)
   const updateGame = async (updatedGame) => {
-    const updatedGames = allGames.map(g => g.id.toString() === gameId ? updatedGame : g);
-
+    const tempKey = `questions-${gameId}`;
+    const localQuestions = JSON.parse(localStorage.getItem(tempKey) || '[]');
+  
+    const finalGame = {
+      ...updatedGame,
+      questions: localQuestions,
+    };
+  
+    const updatedGames = allGames.map(g =>
+      g.id.toString() === gameId ? finalGame : g
+    );
+  
     const res = await fetch('http://localhost:5005/admin/games', {
       method: 'PUT',
       headers: {
@@ -91,9 +101,9 @@ const EditGame = () => {
       },
       body: JSON.stringify({ games: updatedGames }),
     });
-
+  
     if (res.ok) {
-      await fetchGame(); // Refresh after successful update
+      await fetchGame();
     } else {
       const err = await res.text();
       console.error('Update failed:', err);
