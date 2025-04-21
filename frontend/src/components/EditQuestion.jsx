@@ -79,9 +79,9 @@ const EditQuestion = () => {
 
   // Save changes to backend and localStorage
   const updateGame = async () => {
-    const qIndex = Number(questionId);
+    const qIndex = Number(questionId); // Convert questionId to a number
   
-    // Validation checks
+    // Input validation for question content
     if (!question.text.trim()) {
       alert('Question text cannot be empty.');
       return;
@@ -95,6 +95,7 @@ const EditQuestion = () => {
       return;
     }
   
+    // Validate correct answer counts for specific question types
     const correctCount = question.answers.filter(ans => ans.correct).length;
     if (question.type === 'single' && correctCount !== 1) {
       alert('Single choice question must have exactly one correct answer.');
@@ -105,7 +106,7 @@ const EditQuestion = () => {
       return;
     }
   
-    // Merge question
+    // Merge judgment answers if the type is "judgement"
     const updatedQuestion = {
       ...question,
       ...(question.type === 'judgement' && {
@@ -116,45 +117,54 @@ const EditQuestion = () => {
       })
     };
   
-    // Load & update localStorage
+    // Update localStorage for current game's question list
     const tempKey = `questions-${gameId}`;
-    const existingQuestions = JSON.parse(localStorage.getItem(tempKey) || '[]');
-    const updatedQuestions = [...existingQuestions];
+    const localQuestions = JSON.parse(localStorage.getItem(tempKey) || '[]');
+    const updatedQuestions = [...localQuestions];
     if (qIndex >= updatedQuestions.length) {
-      updatedQuestions.push(updatedQuestion);
+      updatedQuestions.push(updatedQuestion); // Append if it's a new question
     } else {
-      updatedQuestions[qIndex] = updatedQuestion;
+      updatedQuestions[qIndex] = updatedQuestion; // Overwrite existing one
     }
-  
-    // Save to localStorage
     localStorage.setItem(tempKey, JSON.stringify(updatedQuestions));
   
-    // Save to backend
-    const updatedGame = {
-      ...game,
-      questions: updatedQuestions
-    };
-    const updatedGames = allGames.map(g =>
-      g.id.toString() === gameId ? updatedGame : g
-    );
+    // Fetch the complete game list from backend
+    const allGamesRes = await fetch('http://localhost:5005/admin/games', {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    const allGamesData = await allGamesRes.json();
+    const allGames = allGamesData.games || [];
   
+    // Replace questions in each game with localStorage if available
+    const finalGames = allGames.map(g => {
+      const key = `questions-${g.id}`;
+      const local = JSON.parse(localStorage.getItem(key) || '[]');
+      return {
+        ...g,
+        questions: local.length > 0 ? local : (g.questions || []),
+      };
+    });
+  
+    // Upload the full game list (with all updated questions) to backend
     const res = await fetch('http://localhost:5005/admin/games', {
       method: 'PUT',
       headers: {
         Authorization: `Bearer ${token}`,
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ games: updatedGames }),
+      body: JSON.stringify({ games: finalGames }),
     });
   
+    // Handle response and redirect to game page if successful
     if (res.ok) {
-      alert('Question saved and synced to server.');
+      alert('Question published successfully!');
       navigate(`/game/${gameId}`, { replace: true });
     } else {
       const err = await res.text();
       alert('Failed to save question:\n' + err);
     }
   };
+  
   
 
   return (

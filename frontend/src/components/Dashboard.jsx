@@ -6,7 +6,11 @@ import {
   Button,
   Card,
   CardContent,
-  CardActions
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogContentText,
+  DialogActions
 } from '@mui/material';
 import AUTH from '../Constant';
 import { useNavigate } from 'react-router-dom';
@@ -14,6 +18,9 @@ import { useNavigate } from 'react-router-dom';
 const Dashboard = () => {
   const [games, setGames] = useState([]); // List of user's games
   const [newGameName, setNewGameName] = useState(''); // Input state for creating new game
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [gameToDelete, setGameToDelete] = useState(null);
+
   const navigate = useNavigate();
 
   // Fetch all games and populate only the games owned by the logged-in user
@@ -127,7 +134,7 @@ const Dashboard = () => {
   };
 
   return (
-    <Box sx={{ p: 4 }}>
+    <><Box sx={{ p: 4 }}>
       {/* Page title */}
       <Typography variant="h4" gutterBottom>
         Dashboard
@@ -138,8 +145,7 @@ const Dashboard = () => {
         <TextField
           label="New game name"
           value={newGameName}
-          onChange={(e) => setNewGameName(e.target.value)}
-        />
+          onChange={(e) => setNewGameName(e.target.value)} />
         <Button variant="contained" onClick={createGame}>
           Create Game
         </Button>
@@ -166,27 +172,49 @@ const Dashboard = () => {
                   component="img"
                   src={game.thumbnail}
                   alt="Thumbnail"
-                  sx={{ height: 80, mt: 1, borderRadius: 1 }}
-                />
+                  sx={{ height: 80, mt: 1, borderRadius: 1 }} />
               )}
             </CardContent>
-            <CardActions>
-              {/* Delete button */}
-              <Button
-                size="small"
-                color="error"
-                onClick={(e) => {
-                  e.stopPropagation(); // Prevent navigation
-                  deleteGame(game.id);
-                }}
-              >
-                Delete Game
-              </Button>
-            </CardActions>
+            <Button
+              size="small"
+              color="error"
+              onClick={(e) => {
+                e.stopPropagation();
+                setGameToDelete(game);
+                setDeleteDialogOpen(true);
+              } }
+            >
+              Delete Game
+            </Button>
           </Card>
         ))}
       </Box>
     </Box>
+
+    <Dialog
+      open={deleteDialogOpen}
+      onClose={() => setDeleteDialogOpen(false)}
+    >
+        <DialogTitle>Delete Game</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            Are you sure you want to delete the game "{gameToDelete?.name}"? 
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setDeleteDialogOpen(false)}>Cancel</Button>
+          <Button
+            color="error"
+            onClick={async () => {
+              await deleteGame(gameToDelete.id);
+              setDeleteDialogOpen(false);
+              setGameToDelete(null);
+            } }
+          >
+            Confirm Delete
+          </Button>
+        </DialogActions>
+      </Dialog></>
   );
 };
 

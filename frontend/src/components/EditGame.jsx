@@ -7,7 +7,7 @@ import {
   Button,
   Card,
   CardContent,
-  CardActions
+  CardActions,
 } from '@mui/material';
 import AUTH from '../Constant';
 import { useLocation } from 'react-router-dom';
@@ -131,6 +131,7 @@ const EditGame = () => {
       thumbnail: editThumbnail,
     };
     updateGame(updated);
+    alert('Game saved successfully!');
   };
 
   // Show loading text if game is not loaded yet
@@ -249,7 +250,7 @@ const EditGame = () => {
             </CardActions>
           </Card>
         ))}
-      </Box>
+      </Box>      
 
       {/* Back navigation */}
       <Box sx={{ mt: 4 }}>
