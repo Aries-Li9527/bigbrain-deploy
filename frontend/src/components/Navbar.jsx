@@ -6,12 +6,16 @@ import Button from '@mui/material/Button';
 import IconButton from '@mui/material/IconButton';
 import { Link } from 'react-router-dom';
 import AUTH from '../Constant';
+import { useNavigate } from 'react-router-dom';
 
 const Navbar = (props) => {
+  const navigate = useNavigate();
   // Logout function: clear token and update state
   const logout = () => {
     props.setToken(null)
     localStorage.removeItem(AUTH.TOKEN_KEY);
+    localStorage.removeItem('email');
+    navigate('/login');
   }
 
   return (

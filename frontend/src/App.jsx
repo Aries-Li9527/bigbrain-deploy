@@ -22,10 +22,10 @@ function App() {
         <Route path='/' element={<MainPage token={token}/>} />
         <Route path='/login' element={<SignIn setToken={setToken} />} />
         <Route path='/register' element={<SignUp setToken={setToken} />} />
-        <Route path='/dashboard' element={<Dashboard />} />
-        <Route path="/game/:gameId" element={<EditGame />} />
-        <Route path="/game/:gameId/question/:questionId" element={<EditQuestion />} />
-        <Route path="/game/:gameId/question/:questionId/view" element={<QuestionView />} />
+        <Route path='/dashboard' element={<Dashboard setToken={setToken}/>} />
+        <Route path="/game/:gameId" element={<EditGame setToken={setToken}/>} />
+        <Route path="/game/:gameId/question/:questionId" element={<EditQuestion setToken={setToken}/>} />
+        <Route path="/game/:gameId/question/:questionId/view" element={<QuestionView setToken={setToken}/>} />
       </Routes>
     </BrowserRouter>
   );
