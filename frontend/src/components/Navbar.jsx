@@ -14,7 +14,7 @@ const Navbar = (props) => {
   const logout = () => {
     props.setToken(null)
     localStorage.removeItem(AUTH.TOKEN_KEY);
-    localStorage.removeItem('email');
+    localStorage.removeItem(AUTH.USER_KEY);
     navigate('/login');
   }
 
