@@ -80,7 +80,7 @@ const EditQuestion = () => {
   // Save changes to backend and localStorage
   const updateGame = async () => {
     const qIndex = Number(questionId); // Convert questionId to a number
-  
+
     // Input validation for question content
     if (!question.text.trim()) {
       alert('Question text cannot be empty.');
@@ -94,7 +94,7 @@ const EditQuestion = () => {
       alert('All answers cannot be empty.');
       return;
     }
-  
+
     // Validate correct answer counts for specific question types
     const correctCount = question.answers.filter(ans => ans.correct).length;
     if (question.type === 'single' && correctCount !== 1) {
@@ -105,7 +105,7 @@ const EditQuestion = () => {
       alert('Multiple choice question must have at least two correct answers.');
       return;
     }
-  
+
     // Merge judgment answers if the type is "judgement"
     const updatedQuestion = {
       ...question,
@@ -116,7 +116,7 @@ const EditQuestion = () => {
         ]
       })
     };
-  
+
     // Update localStorage for current game's question list
     const tempKey = `questions-${gameId}`;
     const localQuestions = JSON.parse(localStorage.getItem(tempKey) || '[]');
@@ -127,14 +127,14 @@ const EditQuestion = () => {
       updatedQuestions[qIndex] = updatedQuestion; // Overwrite existing one
     }
     localStorage.setItem(tempKey, JSON.stringify(updatedQuestions));
-  
+
     // Fetch the complete game list from backend
     const allGamesRes = await fetch('http://localhost:5005/admin/games', {
       headers: { Authorization: `Bearer ${token}` },
     });
     const allGamesData = await allGamesRes.json();
     const allGames = allGamesData.games || [];
-  
+
     // Replace questions in each game with localStorage if available
     const finalGames = allGames.map(g => {
       const key = `questions-${g.id}`;
@@ -144,7 +144,7 @@ const EditQuestion = () => {
         questions: local.length > 0 ? local : (g.questions || []),
       };
     });
-  
+
     // Upload the full game list (with all updated questions) to backend
     const res = await fetch('http://localhost:5005/admin/games', {
       method: 'PUT',
@@ -154,7 +154,7 @@ const EditQuestion = () => {
       },
       body: JSON.stringify({ games: finalGames }),
     });
-  
+
     // Handle response and redirect to game page if successful
     if (res.ok) {
       alert('Question published successfully!');
@@ -164,8 +164,8 @@ const EditQuestion = () => {
       alert('Failed to save question:\n' + err);
     }
   };
-  
-  
+
+
 
   return (
     <Box sx={{ p: 4 }}>
@@ -205,13 +205,33 @@ const EditQuestion = () => {
         value={question.points} onChange={(e) => setQuestion({ ...question, points: parseInt(e.target.value) })} />
 
       {/* YouTube URL */}
-      <TextField fullWidth label="YouTube Video URL" sx={{ mb: 2 }}
-        value={question.video} onChange={(e) => setQuestion({ ...question, video: e.target.value })} />
+      <TextField
+        fullWidth
+        label="YouTube Video URL"
+        sx={{ mb: 2 }}
+        value={question.video}
+        onChange={(e) => setQuestion({ ...question, video: e.target.value })}
+      />
+
+      {/* New: Image URL input */}
+      <TextField
+        fullWidth
+        label="Image URL"
+        sx={{ mb: 2 }}
+        placeholder="https://example.com/image.png"
+        value={question.image.startsWith('data:') ? '' : question.image}
+        onChange={(e) =>
+          setQuestion(prev => ({ ...prev, image: e.target.value }))
+        }
+      />
 
       {/* Image upload */}
       <Button component="label" variant="outlined" sx={{ mb: 2 }}>
         Upload Image
-        <input type="file" hidden accept="image/*"
+        <input
+          type="file"
+          hidden
+          accept="image/*"
           onChange={(e) => {
             const file = e.target.files[0];
             if (file) {
@@ -240,12 +260,15 @@ const EditQuestion = () => {
             variant="outlined"
             color="error"
             sx={{ mt: 1 }}
-            onClick={() => setQuestion(prev => ({ ...prev, image: '' }))}
+            onClick={() =>
+              setQuestion(prev => ({ ...prev, image: '' }))
+            }
           >
             Clear Image
           </Button>
         </>
       )}
+
 
       {/* Answer options section */}
       <Typography variant="h6" mt={3}>Answers</Typography>
