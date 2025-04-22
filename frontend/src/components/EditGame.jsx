@@ -1,292 +1,194 @@
-import { useEffect, useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import {
-  Box,
-  Typography,
-  TextField,
-  Button,
-  Card,
-  CardContent,
-  CardActions,
-} from '@mui/material';
+// Import required modules (UI components, utilities, etc.)
+import { Container } from '@mui/material';
+import Box from '@mui/material/Box';
+import TextField from '@mui/material/TextField';
+import Button from '@mui/material/Button';
+import Typography from '@mui/material/Typography';
+import { useParams } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import Modal from '@mui/material/Modal';
+
 import AUTH from '../Constant';
-import { useLocation } from 'react-router-dom';
+import { fetchAllGames } from '../DataProvider'; // Function to fetch all games
 
-const EditGame = () => {
-  const { gameId } = useParams(); // Get gameId from URL parameters
-  const navigate = useNavigate();
-  const location = useLocation();
-
-  const [game, setGame] = useState(null); // Current game object
-  const [editName, setEditName] = useState(''); // Game name to be edited
-  const [editThumbnail, setEditThumbnail] = useState(''); // Game thumbnail to be edited
-
-  const token = localStorage.getItem(AUTH.TOKEN_KEY);
-  const ownerEmail = localStorage.getItem('email');
-
-  // Compress the uploaded image before saving (client-side compression)
-  const compressImage = (file, maxWidth = 400, maxHeight = 400) =>
-    new Promise((resolve) => {
-      const img = new Image();
-      const reader = new FileReader();
-
-      reader.onload = (e) => {
-        img.src = e.target.result;
-      };
-
-      img.onload = () => {
-        const canvas = document.createElement('canvas');
-        const scale = Math.min(maxWidth / img.width, maxHeight / img.height, 1);
-        canvas.width = img.width * scale;
-        canvas.height = img.height * scale;
-        const ctx = canvas.getContext('2d');
-        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-        resolve(canvas.toDataURL('image/jpeg', 0.7)); // Return base64 JPEG string
-      };
-
-      reader.readAsDataURL(file);
-    });
-
-  // Fetch games from backend and populate target game
-  const fetchGame = async () => {
-    const res = await fetch('http://localhost:5005/admin/games', {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
-    const data = await res.json();
-
-    const owned = data.games.filter(g => g.owner === ownerEmail);
-
-    const current = owned.find(g => g.id.toString() === gameId);
-
-    // Check if local questions exist and override the game questions
-    const tempKey = `questions-${gameId}`;
-    const localQuestions = JSON.parse(localStorage.getItem(tempKey) || '[]');
-    if (localQuestions.length > 0) {
-      current.questions = localQuestions;
-    }
-
-    setGame(current);
-    setEditName(current?.name || '');
-    setEditThumbnail(current?.thumbnail || '');
-  };
-
-  // Re-fetch game whenever path changes (e.g. question updated)
-  useEffect(() => {
-    fetchGame();
-  }, [location.pathname]);
-
-  // Update a specific game (by ID) and save the full games list to the backend
-  const updateGame = async (updatedGame) => {
-    const token = localStorage.getItem(AUTH.TOKEN_KEY);
-    const tempKey = `questions-${gameId}`; // LocalStorage key for this game's questions
-    const localQuestions = JSON.parse(localStorage.getItem(tempKey) || '[]');
-
-    // Compose the updated game with local questions included
-    const finalGame = {
-      ...updatedGame,
-      questions: localQuestions,
-    };
-
-    // Fetch all existing games from the backend
-    const resAll = await fetch('http://localhost:5005/admin/games', {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
-
-    const data = await resAll.json();
-    const backendGames = data.games || [];
-
-    // Merge all games — keeping local questions if available
-    const mergedGames = backendGames.map(g => {
-      const key = `questions-${g.id}`;
-      const local = JSON.parse(localStorage.getItem(key) || '[]');
-
-      // Replace the target game with the updated one
-      if (g.id.toString() === gameId) {
-        return finalGame;
-      }
-
-      // Preserve local questions for other games if available
-      return {
-        ...g,
-        questions: local.length > 0 ? local : (g.questions || []),
-      };
-    });
-
-    // PUT the updated full games list back to backend
-    const res = await fetch('http://localhost:5005/admin/games', {
-      method: 'PUT',
-      headers: {
-        Authorization: `Bearer ${token}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ games: mergedGames }),
-    });
-
-    // If update succeeds, refetch game and notify user
-    if (res.ok) {
-      await fetchGame(); // Refresh the current game data from backend
-      alert('Game saved successfully!');
-    } else {
-      const err = await res.text();
-      console.error('Update failed:', err); // Log error if update fails
-      alert('Failed to update game.');
-    }
-  };
-
-  // Delete question from local storage
-  const deleteQuestion = (index) => {
-    if (!window.confirm('Are you sure you want to delete this question?')) return;
-
-    const tempKey = `questions-${gameId}`;
-    const currentQuestions = JSON.parse(localStorage.getItem(tempKey) || '[]');
-
-    currentQuestions.splice(index, 1); // Remove question
-    localStorage.setItem(tempKey, JSON.stringify(currentQuestions)); // Save changes
-
-    setGame({ ...game, questions: currentQuestions }); // Update local state
-  };
-
-  // Save updated game name and thumbnail
-  const saveMeta = () => {
-    const updated = {
-      ...game,
-      name: editName,
-      thumbnail: editThumbnail,
-    };
-    updateGame(updated);
-    alert('Game saved successfully!');
-  };
-
-  // Show loading text if game is not loaded yet
-  if (!game) return <Typography sx={{ p: 4 }}>Loading...</Typography>;
-
-  return (
-    <Box sx={{ p: 4 }}>
-      <Typography variant="h4" gutterBottom>Edit Game: {game.name}</Typography>
-
-      {/* Editable metadata form */}
-      <Box sx={{ mb: 4 }}>
-        <Typography variant="h6" gutterBottom>Edit Game Metadata</Typography>
-        <TextField
-          label="Game Name"
-          value={editName}
-          onChange={(e) => setEditName(e.target.value)}
-          sx={{ mr: 2, mb: 2 }}
-        />
-
-        <TextField
-          label="Thumbnail URL"
-          value={editThumbnail}
-          onChange={(e) => setEditThumbnail(e.target.value)}
-          fullWidth
-          sx={{ mt: 2, mb: 2 }}
-        />
-
-        <Button variant="outlined" component="label">
-          Upload Image File
-          <input
-            type="file"
-            hidden
-            accept="image/*"
-            onChange={async (e) => {
-              const file = e.target.files[0];
-              if (file) {
-                const compressed = await compressImage(file);
-                setEditThumbnail(compressed);
-              }
-            }}
-          />
-        </Button>
-
-        {/* Thumbnail preview */}
-        {editThumbnail && (
-          <Box mt={2}>
-            <Typography variant="body2">Thumbnail Preview:</Typography>
-            <Box
-              component="img"
-              src={editThumbnail}
-              alt="Preview"
-              sx={{ height: 100, borderRadius: 1, mt: 1 }}
-            />
-          </Box>
-        )}
-
-        <Box mt={2}>
-          <Button variant="contained" onClick={saveMeta}>
-            Save
-          </Button>
-        </Box>
-      </Box>
-
-      {/* Add new question */}
-      <Box sx={{ mb: 3 }}>
-        <Typography variant="h6">Add New Question</Typography>
-        <Button
-          variant="contained"
-          onClick={() => {
-            const local = JSON.parse(localStorage.getItem(`questions-${gameId}`) || '[]');
-            const nextIndex = local.length;
-            navigate(`/game/${gameId}/question/${nextIndex}`);
-          }}
-        >
-          Add New Question
-        </Button>
-      </Box>
-
-      {/* List of existing questions */}
-      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-        {game.questions?.map((q, index) => (
-          <Card key={index} variant="outlined">
-            <CardContent>
-              <Typography>Q{index + 1}: {q.text || '[Untitled]'}</Typography>
-              <Typography>Time: {q.time || 0} seconds</Typography>
-
-              {/* Video link display */}
-              {q.video && (
-                <Typography sx={{ mt: 1 }}>
-                  Video: <a href={q.video} target="_blank" rel="noopener noreferrer">{q.video}</a>
-                </Typography>
-              )}
-
-              {/* Image URL display */}
-              {q.image && (
-                <Typography sx={{ mt: 1 }}>
-                  Image URL: <a href={q.image} target="_blank" rel="noopener noreferrer">{q.image}</a>
-                </Typography>
-              )}
-            </CardContent>
-
-            <CardActions>
-              <Button
-                size="small"
-                onClick={() => navigate(`/game/${gameId}/question/${index}`)}
-              >
-                Edit
-              </Button>
-              <Button
-                size="small"
-                color="error"
-                onClick={() => deleteQuestion(index)}
-              >
-                Delete
-              </Button>
-            </CardActions>
-          </Card>
-        ))}
-      </Box>      
-
-      {/* Back navigation */}
-      <Box sx={{ mt: 4 }}>
-        <Button variant="contained" color="secondary" onClick={() => navigate('/dashboard')}>
-          Back to Dashboard
-        </Button>
-      </Box>
-    </Box>
-  );
+// --------------------------
+// Modal style for popup
+// --------------------------
+const style = {
+  position: 'absolute',
+  top: '50%',
+  left: '50%',
+  transform: 'translate(-50%, -50%)',
+  width: 400,
+  bgcolor: 'background.paper',
+  border: '2px solid #000',
+  boxShadow: 24,
+  p: 4,
 };
 
+// --------------------------
+// EditGame Component 
+// --------------------------
+const EditGame = () => {
+  const { game_id } = useParams();
+
+  // -------------------------------------
+  // State declarations
+  // -------------------------------------
+  const [name, setName] = useState("");             // Game title
+  const [game, setGame] = useState(null);           // Current game object
+  const [open, setOpen] = useState(false);          // Modal open/close state
+  const [thumbnail, setThumbnail] = useState("");   // Thumbnail image URL
+  const [questions, setQuestions] = useState([]);   // List of questions for the current game
+  const [questionName, setQuestionName] = useState([]); // Title of the new question to be added
+  
+  // ----------------------------
+  // open/close modal
+  // ----------------------------
+  const handleOpen = () => setOpen(true);
+  const handleClose = () => setOpen(false);
+
+  // -----------------------------------------------
+  // 初始加载游戏数据（通过 game_id 匹配）
+  // Load game data on mount
+  // -----------------------------------------------
+  useEffect(() => {
+    fetchAllGames().then((data) => {
+      const foundGame = data.games.find(game => String(game.id) === game_id);
+      if (foundGame) {
+        setGame(foundGame);
+        setQuestions(foundGame.questions);
+      }
+    });
+  }, [game, questions]);
+
+  // ---------------------------------------------------
+  // 保存当前游戏基本信息（标题和缩略图）
+  // Save updated game name and thumbnail
+  // ---------------------------------------------------
+  const saveUpdateGame = () => {
+    const userToken = localStorage.getItem(AUTH.TOKEN_KEY);
+    fetchAllGames().then((data) => {
+      const oldGame = data.games || [];
+
+      // Update the current game information
+      const updatedGames = oldGame.map(g =>
+        String(g.id) === game_id ? { ...g, name, thumbnail } : g
+      );
+
+      // Send an update request
+      return fetch('http://localhost:5005/admin/games', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${userToken}`,
+        },
+        body: JSON.stringify({ games: updatedGames }),
+      }).then(res => {
+        res.json(); 
+        setName("");
+        setThumbnail("");
+      });
+    });
+  };
+
+  
+
+  //Component JSX layout
+  return (
+    <Container maxWidth="lg">
+      {/* Edit form section */}
+      <Box sx={{ display: "flex", flexDirection: "column" }}>
+        <Typography variant="h2" gutterBottom>
+          Edit your games :{game.name} here!
+        </Typography>
+
+        {/* Game title input */}
+        <TextField
+          id="game-name-input"
+          label="Game name"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+        />
+        <br />
+
+        {/* Thumbnail URL input */}
+        <TextField
+          id="Thumbnail-URL"
+          label="Thumbnail URL"
+          value={thumbnail}
+          onChange={(e) => setThumbnail(e.target.value)}
+        />
+        <br />
+
+        {/*Submit changes */}
+        <Button variant="contained" onClick={saveUpdateGame}>
+          Save changes
+        </Button>
+      </Box>
+
+      {/*new question---------------------------------------- */}
+      <br />
+      <br />
+      <Button variant="contained" onClick={handleOpen}>Add a new question </Button>
+
+      {/* Modal for creating new question */}
+      <Modal
+        open={open}
+        onClose={handleClose}
+        aria-labelledby="modal-modal-title"
+        aria-describedby="modal-modal-description"
+      >
+        <Box sx={style}>
+          <Typography id="modal-modal-title" variant="h6" component="h2">
+            Question title
+          </Typography>
+          <br />
+          <TextField
+            required
+            id="question-title-input"
+            label="question name"
+            value={questionName}
+            onChange={(e) => setQuestionName(e.target.value)}
+          />
+          <br /><br />
+          <Button variant="contained" onClick={postNewQuestion}>Submit</Button>
+        </Box>
+      </Modal>
+      <br /><br />
+
+      {questions.map((q) => (
+        <Box
+          key={q.id}
+          sx={{
+            display: 'flex',
+            flexDirection: 'column',
+            gap: 1.5,
+            p: 3,
+            border: '1px solid #e0e0e0',
+            borderRadius: 3,
+            mb: 3,
+            bgcolor: 'white',
+            boxShadow: '0px 2px 6px rgba(0,0,0,0.08)',
+            transition: 'all 0.3s ease',
+            '&:hover': {
+              boxShadow: '0px 4px 12px rgba(0,0,0,0.12)',
+              transform: 'translateY(-2px)',
+            },
+          }}
+        >
+          {/* ID - Display question ID */}
+          <Typography variant="subtitle2" color="text.secondary">
+            Question ID: {q.id}
+          </Typography>
+
+          {/* Display question content */}
+          <Typography variant="body1" fontWeight={500}>
+            Question: {q.question || <i style={{ color: '#aaa' }}>No question content</i>}
+          </Typography>
+        </Box>
+      ))}
+    </Container>
+  );
+};
 export default EditGame;
