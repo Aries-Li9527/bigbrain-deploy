@@ -92,7 +92,57 @@ const EditGame = () => {
     });
   };
 
-  
+  // ---------------------------------------------------------------------
+  // 添加一个新问题到当前游戏
+  // Add new question to current game based on modal input
+  // ---------------------------------------------------------------------
+  const postNewQuestion = () => {
+    const userToken = localStorage.getItem(AUTH.TOKEN_KEY);
+
+    fetchAllGames().then((data) => {
+      const oldgame = Array.isArray(data.games) ? data.games : [];
+      const foundGame = oldgame.find(game => String(game.id) === game_id);
+
+      const newQuestion = {
+        id: Math.floor(Math.random() * 100000000),
+        question: questionName,
+        time: 0,
+        point: 0,
+        type: "",
+        video: "",
+        image: "",
+        correctAnswers: [],
+        optionAnswers: [],
+      };
+
+      const updateGame = {
+        ...foundGame,
+        questions: [...foundGame.questions, newQuestion]
+      };
+
+      const updatedGames = oldgame.map(g =>
+        String(g.id) === game_id ? updateGame : g
+      );
+
+      return fetch('http://localhost:5005/admin/games', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${userToken}`,
+        },
+        body: JSON.stringify({ games: updatedGames }),
+      }).then(res => res.json())
+        .then(() => {
+          setQuestionName("");
+          handleClose();
+        });
+    });
+  };
+
+  // -------------------------------
+  // The loading status during the initial loading
+  // -------------------------------
+  if (!game) return <div>loading...</div>;
 
   //Component JSX layout
   return (
