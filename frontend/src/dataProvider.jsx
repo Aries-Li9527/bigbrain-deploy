@@ -1,6 +1,5 @@
-import AUTH from './Constant';
-
-// Error handler: throw if response contains an error field
+import AUTH from "./Constant"; 
+// Global error handler
 const handleError = (res) => {
   const { error } = res;
   if (error) {
@@ -9,19 +8,18 @@ const handleError = (res) => {
   return res;
 };
 
+// Fetch all games from backend with authentication
+export const fetchAllGames = () => {
+  const userToken = localStorage.getItem(AUTH.TOKEN_KEY); 
 
-// Fetch all games 
-export const fetchAllGames = async () => {
-  const userToken = localStorage.getItem(AUTH.TOKEN_KEY);
-
-  const res = await fetch('http://localhost:5005/admin/games', {
-    method: 'GET',
+  return fetch("http://localhost:5005/admin/games", {
+    method: "GET", 
     headers: {
-      'Content-type': 'application/json; charset=UTF-8',
-      Authorization: `Bearer ${userToken}`,
+      "Content-type": "application/json; charset=UTF-8", 
+      Authorization: `Bearer ${userToken}`,              
     },
-  });
-
-  const data = await res.json();
-  return handleError(data);
+  })
+    .then((res) => res.json()) 
+    .then(handleError);        
 };
+
