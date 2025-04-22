@@ -53,7 +53,10 @@ const CardShape = (props) => {
           {/* Action buttons */}
           <CardActions>
             <Button size="small" onClick={() => turnToEditGame(game.id)}>Edit Game</Button>
-            <Button size="small">Delete Game</Button>
+            <Button size="small" color="error" onClick={() => props.onDelete?.(game.id)}>
+              Delete Game
+            </Button>
+
           </CardActions>
         </Card>
       ))}

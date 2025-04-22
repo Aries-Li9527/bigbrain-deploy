@@ -70,11 +70,40 @@ const Dashboard = () => {
         body: JSON.stringify({ games: updatedGames }),
       });
     }).then(() => {
+      window.alert("Game created successfully!");
       handleClose();
       setTitle('');
       getGames();
     });
   };
+
+  const deleteGame = (gameId) => {
+    const confirmDelete = window.confirm("Are you sure you want to delete this game?");
+    if (!confirmDelete) return;
+  
+    const userToken = localStorage.getItem(AUTH.TOKEN_KEY);
+  
+    fetchAllGames().then((data) => {
+      const updatedGames = data.games.filter(game => String(game.id) !== String(gameId));
+  
+      return fetch('http://localhost:5005/admin/games', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${userToken}`,
+        },
+        body: JSON.stringify({ games: updatedGames }),
+      });
+    }).then(res => {
+      if (res.ok) {
+        window.alert("Game deleted successfully.");
+        getGames();  // Refresh UI
+      } else {
+        window.alert("Failed to delete the game.");
+      }
+    });
+  };
+  
 
   // -------------------------------------------------------
   // Load all games from backend when component is mounted
@@ -112,7 +141,7 @@ const Dashboard = () => {
       </Box>
 
       {/*Render Game Cards */}
-      <CardShape games={games} />
+      <CardShape games={games} onDelete={deleteGame} />
 
       {/* Create Game Modal */}
       <Modal

@@ -86,9 +86,15 @@ const EditGame = () => {
         },
         body: JSON.stringify({ games: updatedGames }),
       }).then(res => {
-        res.json();
-        setName("");
-        setThumbnail("");
+        if (res.ok) {
+          res.json();
+          setName("");
+          setThumbnail("");
+          window.alert("Game updated successfully!");
+          navigate('/dashboard');
+        } else {
+          window.alert("Failed to update the game.");
+        }
       });
     });
   };
@@ -143,6 +149,10 @@ const EditGame = () => {
   // Delete a question from current game and update to backend
   // ------------------------------------------------------------
   const handleDeleteQuestion = (questionId) => {
+
+    const confirmed = window.confirm("Are you sure you want to delete this question?");
+    if (!confirmed) return;
+
     const userToken = localStorage.getItem(AUTH.TOKEN_KEY);
 
     fetchAllGames().then((data) => {
@@ -221,6 +231,10 @@ const EditGame = () => {
         <Button variant="contained" onClick={saveUpdateGame}>
           Save changes
         </Button>
+
+        <Button variant="outlined" color="secondary" onClick={() => navigate('/dashboard')}>
+          Cancel
+        </Button>
       </Box>
 
       {/*new question---------------------------------------- */}
@@ -282,6 +296,18 @@ const EditGame = () => {
           <Typography variant="body1" fontWeight={500}>
             Question: {q.question || <i style={{ color: '#aaa' }}>No question content</i>}
           </Typography>
+          {q.video && (
+            <Typography variant="body2" color="text.secondary">
+              <a href={q.video} target="_blank" rel="noopener noreferrer">YouTube Video</a>
+            </Typography>
+          )}
+
+          {q.image && (
+            <Typography variant="body2" color="text.secondary">
+              <a href={q.image} target="_blank" rel="noopener noreferrer">Image</a>
+            </Typography>
+          )}
+
 
           {/* Action Buttons */}
           <Box sx={{ display: 'flex', gap: 2, mt: 1 }}>
@@ -289,7 +315,7 @@ const EditGame = () => {
             <Button
               size="small"
               variant="outlined"
-              onClick={() => handleEditQuestion(q.id)} 
+              onClick={() => handleEditQuestion(q.id)}
             >
               Edit
             </Button>
@@ -299,7 +325,7 @@ const EditGame = () => {
               size="small"
               variant="outlined"
               color="error"
-              onClick={() => handleDeleteQuestion(q.id)} 
+              onClick={() => handleDeleteQuestion(q.id)}
             >
               Delete
             </Button>
