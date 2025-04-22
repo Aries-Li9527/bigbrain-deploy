@@ -31,21 +31,29 @@ const CardShape = (props) => {
             image={game.thumbnail || "https://picsum.photos/300/180?random=10"}
             alt="Game picture"
           />
-          
+
           {/* Game title and subtitle */}
           <CardContent>
+            {/* game title */}
             <Typography gutterBottom variant="h5" component="div">
               {game.name}
             </Typography>
-            <Typography variant="body2" sx={{ color: 'text.secondary' }}>
-              Tile
+
+            {/* question */}
+            <Typography variant="body2" color="text.secondary">
+              Questions: {game.questions?.length ?? 0}
+            </Typography>
+
+            {/* Total Time */}
+            <Typography variant="body2" color="text.secondary">
+              Total Time: {game.questions?.reduce((sum, q) => sum + (q.time || 0), 0)} sec
             </Typography>
           </CardContent>
 
           {/* Action buttons */}
           <CardActions>
             <Button size="small" onClick={() => turnToEditGame(game.id)}>Edit Game</Button>
-            <Button size="small">Delete Game</Button> 
+            <Button size="small">Delete Game</Button>
           </CardActions>
         </Card>
       ))}
