@@ -6,6 +6,7 @@ import Navbar from './components/Navbar';
 import MainPage from './components/MainPage';
 import Dashboard from './components/Dashboard';
 import EditGame from './components/EditGame';
+import EditQuestion from './components/EditQuestion'
 
 
 function App() {
@@ -21,7 +22,8 @@ function App() {
         <Route path='/login' element={<SignIn setToken={setToken} />} />
         <Route path='/register' element={<SignUp setToken={setToken} />} />
         <Route path='/dashboard' element={<Dashboard setToken={setToken} />} />
-        <Route path="/game/:game_id" element={<EditGame />} />
+        <Route path="/game/:game_id" element={<EditGame setToken={setToken}/>} />
+        <Route path="/game/:game_id/question/:question_id" element={<EditQuestion setToken={setToken}/>} />
 
       </Routes>
     </BrowserRouter>

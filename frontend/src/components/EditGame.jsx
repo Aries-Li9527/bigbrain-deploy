@@ -4,9 +4,9 @@ import Box from '@mui/material/Box';
 import TextField from '@mui/material/TextField';
 import Button from '@mui/material/Button';
 import Typography from '@mui/material/Typography';
-import { useParams } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import Modal from '@mui/material/Modal';
+import { useNavigate, useParams } from 'react-router-dom';
 
 import AUTH from '../Constant';
 import { fetchAllGames } from '../DataProvider'; // Function to fetch all games
@@ -30,6 +30,7 @@ const style = {
 // EditGame Component 
 // --------------------------
 const EditGame = () => {
+  const navigate = useNavigate();
   const { game_id } = useParams();
 
   // -------------------------------------
@@ -41,7 +42,7 @@ const EditGame = () => {
   const [thumbnail, setThumbnail] = useState("");   // Thumbnail image URL
   const [questions, setQuestions] = useState([]);   // List of questions for the current game
   const [questionName, setQuestionName] = useState([]); // Title of the new question to be added
-  
+
   // ----------------------------
   // open/close modal
   // ----------------------------
@@ -60,7 +61,7 @@ const EditGame = () => {
         setQuestions(foundGame.questions);
       }
     });
-  }, [game, questions]);
+  }, [questions]);
 
   // ---------------------------------------------------
   // 保存当前游戏基本信息（标题和缩略图）
@@ -85,7 +86,7 @@ const EditGame = () => {
         },
         body: JSON.stringify({ games: updatedGames }),
       }).then(res => {
-        res.json(); 
+        res.json();
         setName("");
         setThumbnail("");
       });
@@ -93,7 +94,6 @@ const EditGame = () => {
   };
 
   // ---------------------------------------------------------------------
-  // 添加一个新问题到当前游戏
   // Add new question to current game based on modal input
   // ---------------------------------------------------------------------
   const postNewQuestion = () => {
@@ -137,6 +137,52 @@ const EditGame = () => {
           handleClose();
         });
     });
+  };
+
+  // ------------------------------------------------------------
+  // Delete a question from current game and update to backend
+  // ------------------------------------------------------------
+  const handleDeleteQuestion = (questionId) => {
+    const userToken = localStorage.getItem(AUTH.TOKEN_KEY);
+
+    fetchAllGames().then((data) => {
+      const allGames = Array.isArray(data.games) ? data.games : [];
+      const targetGame = allGames.find((game) => String(game.id) === game_id);
+
+      // 过滤掉目标问题
+      const updatedQuestions = targetGame.questions.filter((q) => q.id !== questionId);
+
+      // 构建更新后的 game 对象
+      const updatedGame = {
+        ...targetGame,
+        questions: updatedQuestions,
+      };
+
+      // 替换更新后的 game 到全体 games 列表中
+      const updatedGames = allGames.map((g) =>
+        String(g.id) === game_id ? updatedGame : g
+      );
+
+      // 发送更新请求
+      return fetch('http://localhost:5005/admin/games', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${userToken}`,
+        },
+        body: JSON.stringify({ games: updatedGames }),
+      }).then((res) => res.json())
+        .then(() => {
+          setQuestions(updatedQuestions);
+        });
+    });
+  };
+
+
+  // ------------------------------------------------------------
+  // ------------------------------------------------------------
+  const handleEditQuestion = (questionId) => {
+    navigate(`/game/${game_id}/question/${questionId}`);
   };
 
   // -------------------------------
@@ -236,6 +282,28 @@ const EditGame = () => {
           <Typography variant="body1" fontWeight={500}>
             Question: {q.question || <i style={{ color: '#aaa' }}>No question content</i>}
           </Typography>
+
+          {/* Action Buttons */}
+          <Box sx={{ display: 'flex', gap: 2, mt: 1 }}>
+            {/* Edit Button */}
+            <Button
+              size="small"
+              variant="outlined"
+              onClick={() => handleEditQuestion(q.id)} 
+            >
+              Edit
+            </Button>
+
+            {/* Delete Button */}
+            <Button
+              size="small"
+              variant="outlined"
+              color="error"
+              onClick={() => handleDeleteQuestion(q.id)} 
+            >
+              Delete
+            </Button>
+          </Box>
         </Box>
       ))}
     </Container>
