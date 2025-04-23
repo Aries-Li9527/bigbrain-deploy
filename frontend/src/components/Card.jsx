@@ -6,6 +6,8 @@ import CardMedia from '@mui/material/CardMedia';
 import Button from '@mui/material/Button';
 import Typography from '@mui/material/Typography';
 import { useNavigate } from 'react-router-dom';
+import StartSession from './StartSession';
+import AUTH from '../Constant';
 
 // CardShape component: displays a list of games in card layout
 const CardShape = (props) => {
@@ -19,6 +21,34 @@ const CardShape = (props) => {
   const turnToEditGame = (id) => {
     navigate(`/game/${id}`);
   };
+
+  // Function to stop an active game session by gameId
+const handleStopSession = async (gameId) => {
+  // Get the stored user token for authorization
+  const token = localStorage.getItem(AUTH.TOKEN_KEY);
+
+  // Send a POST request to stop the session (mutationType: 'end')
+  const res = await fetch(`http://localhost:5005/admin/game/${gameId}/mutate`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`
+    },
+    body: JSON.stringify({ mutationType: 'end' }) // Request to stop session
+  });
+
+  const data = await res.json();
+
+  if (res.ok) {
+    // If stopping succeeded, alert the user and refresh the game list
+    alert('Game session has been stopped.');
+    props.refresh(); // Assumes a refresh function is passed in props to reload data
+  } else {
+    // If stopping failed, show the error
+    alert(data.error || 'Failed to stop session.');
+  }
+};
+
 
   return (
     // Card container with flex layout
@@ -56,6 +86,21 @@ const CardShape = (props) => {
             <Button size="small" color="error" onClick={() => props.onDelete?.(game.id)}>
               Delete Game
             </Button>
+
+            {game.active
+              ? (
+                <>
+                  <Button size="small" onClick={() => navigate(`/session/${game.active}`)}>
+                    Manage Session
+                  </Button>
+                  <Button size="small" color="error" onClick={() => handleStopSession(game.id)}>
+                    Stop Game
+                  </Button>
+                </>
+              )
+              : (
+                <StartSession gameId={game.id} refresh={props.refresh} />
+              )}
 
           </CardActions>
         </Card>

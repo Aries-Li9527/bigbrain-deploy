@@ -141,7 +141,7 @@ const Dashboard = () => {
       </Box>
 
       {/*Render Game Cards */}
-      <CardShape games={games} onDelete={deleteGame} />
+      <CardShape games={games} onDelete={deleteGame} refresh={getGames} />
 
       {/* Create Game Modal */}
       <Modal

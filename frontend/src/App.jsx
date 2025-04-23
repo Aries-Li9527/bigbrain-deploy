@@ -7,7 +7,8 @@ import MainPage from './components/MainPage';
 import Dashboard from './components/Dashboard';
 import EditGame from './components/EditGame';
 import EditQuestion from './components/EditQuestion'
-
+import SessionPage from './components/SessionPage';
+import PlayScreen from './components/PlayScreen';
 
 function App() {
   const [token, setToken] = useState(localStorage.getItem('token'));
@@ -24,7 +25,8 @@ function App() {
         <Route path='/dashboard' element={<Dashboard setToken={setToken} />} />
         <Route path="/game/:game_id" element={<EditGame setToken={setToken}/>} />
         <Route path="/game/:game_id/question/:question_id" element={<EditQuestion setToken={setToken}/>} />
-
+        <Route path="/session/:session_id" element={<SessionPage />} />
+        <Route path="/play/:session_id" element={<PlayScreen />} />
       </Routes>
     </BrowserRouter>
   );
