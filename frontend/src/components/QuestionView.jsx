@@ -77,7 +77,7 @@ const QuestionView = () => {
       {/* Basic question metadata */}
       <Typography><strong>Text:</strong> {question.text}</Typography>
       <Typography><strong>Type:</strong> {question.type}</Typography>
-      <Typography><strong>Time:</strong> {question.time} seconds</Typography>
+      <Typography><strong>Time:</strong> {question.duration} seconds</Typography>
       <Typography><strong>Points:</strong> {question.points}</Typography>
       <Typography><strong>YouTube:</strong> {question.video || 'N/A'}</Typography>
 

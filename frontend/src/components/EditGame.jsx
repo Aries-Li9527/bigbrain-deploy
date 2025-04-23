@@ -112,7 +112,7 @@ const EditGame = () => {
       const newQuestion = {
         id: Math.floor(Math.random() * 100000000),
         question: questionName,
-        time: 0,
+        duration: 0,
         point: 0,
         type: "",
         video: "",

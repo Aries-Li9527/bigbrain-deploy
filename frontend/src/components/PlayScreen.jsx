@@ -6,12 +6,12 @@ const PlayScreen = () => {
   const [stage, setStage] = useState('loading');
   const [playerName, setPlayerName] = useState('');
   const [playerId, setPlayerId] = useState(null);
-  const [setPosition] = useState(-1);
+  const [position, setPosition] = useState(-1);
   const [lastKnownPosition, setLastKnownPosition] = useState(-2);
 
   const [question, setQuestion] = useState(null);
   const [selected, setSelected] = useState([]);
-  const [timeLeft, setTimeLeft] = useState(null);
+  const [durationLeft, setTimeLeft] = useState(null);
   const [questionFetched, setQuestionFetched] = useState(false);
 
   const fetchStatus = async () => {
@@ -58,7 +58,7 @@ const PlayScreen = () => {
     const start = new Date(q.isoTimeLastQuestionStarted);
     const now = new Date();
     const secondsPassed = Math.floor((now - start) / 1000);
-    const remaining = q.time - secondsPassed;
+    const remaining = q.duration - secondsPassed;
 
     setTimeLeft(remaining > 0 ? remaining : 0);
     setStage('question');
@@ -108,11 +108,11 @@ const PlayScreen = () => {
   }, [playerId]);
 
   useEffect(() => {
-    if (stage === 'question' && timeLeft !== null && timeLeft > 0) {
-      const t = setTimeout(() => setTimeLeft(timeLeft - 1), 1000);
+    if (stage === 'question' && durationLeft !== null && durationLeft > 0) {
+      const t = setTimeout(() => setTimeLeft(durationLeft - 1), 1000);
       return () => clearTimeout(t);
     }
-  }, [timeLeft, stage]);
+  }, [durationLeft, stage]);
 
   if (stage === 'loading') return <p>Loading...</p>;
 
@@ -148,7 +148,7 @@ const PlayScreen = () => {
         <h2>{question.question}</h2>
         {question.image && <img src={question.image} alt="question" style={{ maxWidth: '100%' }} />}
         {question.video && <video src={question.video} controls style={{ maxWidth: '100%' }} />}
-        <p>Time left: {timeLeft}s</p>
+        <p>Duration left: {durationLeft}s</p>
         <div>
           {question.optionAnswers.map((ans, idx) => (
             <button

@@ -24,7 +24,7 @@ const CardShape = (props) => {
 
   // Function to stop an active game session by gameId
   const handleStopSession = async (gameId) => {
-  // Get the stored user token for authorization
+    // Get the stored user token for authorization
     const token = localStorage.getItem(AUTH.TOKEN_KEY);
 
     // Send a POST request to stop the session (mutationType: 'end')
@@ -40,11 +40,11 @@ const CardShape = (props) => {
     const data = await res.json();
 
     if (res.ok) {
-    // If stopping succeeded, alert the user and refresh the game list
+      // If stopping succeeded, alert the user and refresh the game list
       alert('Game session has been stopped.');
       props.refresh(); // Assumes a refresh function is passed in props to reload data
     } else {
-    // If stopping failed, show the error
+      // If stopping failed, show the error
       alert(data.error || 'Failed to stop session.');
     }
   };
@@ -74,10 +74,12 @@ const CardShape = (props) => {
               Questions: {game.questions?.length ?? 0}
             </Typography>
 
-            {/* Total Time */}
+            {/* Total Duration */}
             <Typography variant="body2" color="text.secondary">
-              Total Time: {game.questions?.reduce((sum, q) => sum + (q.time || 0), 0)} sec
+              Total Duration: {(game.questions?.reduce((sum, q) => sum + (q.duration || 0), 0) / 60).toFixed(2)} min
             </Typography>
+
+
           </CardContent>
 
           {/* Action buttons */}

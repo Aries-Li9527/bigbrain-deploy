@@ -19,8 +19,8 @@ const EditQuestion = () => {
     const correctCount = answers.filter(ans => ans.correct).length;
     const hasEmptyText = answers.some(ans => !ans.text.trim());
 
-    if (!questionData.time || questionData.time <= 0) {
-      alert('Time limit must be greater than 0.');
+    if (!questionData.duration || questionData.duration <= 0) {
+      alert('Duration limit must be greater than 0.');
       return false;
     }
 
@@ -133,16 +133,20 @@ const EditQuestion = () => {
       </FormControl>
 
       <TextField
-        label="Time Limit (seconds)"
+        label="Duration Limit (minutes)"
         type="number"
-        placeholder="e.g. 30"
+        placeholder="e.g. 1"
         fullWidth
         sx={{ mb: 2 }}
-        value={questionData.time === 0 ? '' : questionData.time}
+        value={questionData.duration === 0 ? '' : questionData.duration / 60}
         onChange={(e) =>
-          setQuestionData({ ...questionData, time: parseInt(e.target.value) || 0 })
+          setQuestionData({
+            ...questionData,
+            duration: Math.round(parseFloat(e.target.value || 0) * 60), // ⏱️ 转换为秒
+          })
         }
       />
+
 
 
       <TextField
