@@ -177,7 +177,75 @@ const SessionPage = () => {
     .sort((a, b) => b.score - a.score)
     .slice(0, 5);
 
-  
+  // UI
+  return (
+    <Box sx={{ p: 4 }}>
+      <Typography variant="h4" gutterBottom>Session Management</Typography>
+      <Typography>Session ID: {session_id}</Typography>
+      <Typography>Position: {sessionData.position}</Typography>
+      <Typography>Status: {sessionData.active ? 'Active' : 'Ended'}</Typography>
+
+      {/* Controls shown only when session is active */}
+      {sessionData.active && (
+        <Box sx={{ mt: 3, display: 'flex', gap: 2 }}>
+          <Button variant="contained" onClick={advance}>Advance to Next Question</Button>
+          <Button variant="outlined" color="error" onClick={stopGame}>Stop Game</Button>
+        </Box>
+      )}
+
+      {/* Results shown when session ends */}
+      {!sessionData.active && (
+        <>
+          <Typography variant="h5" sx={{ mt: 4 }}>Top 5 Players</Typography>
+          <Table sx={{ mt: 2 }}>
+            <TableHead>
+              <TableRow><TableCell>Player</TableCell><TableCell>Score</TableCell></TableRow>
+            </TableHead>
+            <TableBody>
+              {topPlayers.map((player, idx) => (
+                <TableRow key={idx}>
+                  <TableCell>{player.name}</TableCell>
+                  <TableCell>{player.score}</TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+
+          <Typography variant="h5" sx={{ mt: 4 }}>Correct Rate per Question (%)</Typography>
+          <ResponsiveContainer width="100%" height={300}>
+            <BarChart data={chartData}>
+              <XAxis dataKey="name" />
+              <YAxis />
+              <Tooltip />
+              <Bar dataKey="correctRate" />
+            </BarChart>
+          </ResponsiveContainer>
+
+          <Typography variant="h5" sx={{ mt: 4 }}>Average Answer Time (s)</Typography>
+          <ResponsiveContainer width="100%" height={300}>
+            <LineChart data={chartData}>
+              <XAxis dataKey="name" />
+              <YAxis />
+              <Tooltip />
+              <Line type="monotone" dataKey="avgTime" stroke="#8884d8" />
+            </LineChart>
+          </ResponsiveContainer>
+        </>
+      )}
+
+      {/* Confirmation dialog after stopping session */}
+      <Dialog open={openConfirm} onClose={() => setOpenConfirm(false)}>
+        <DialogTitle>View Results</DialogTitle>
+        <DialogContent>
+          <Typography>Would you like to view the results?</Typography>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setOpenConfirm(false)}>No</Button>
+          <Button onClick={() => navigate(`/session/${session_id}`)} autoFocus>Yes</Button>
+        </DialogActions>
+      </Dialog>
+    </Box>
+  );
 };
 
 export default SessionPage;
