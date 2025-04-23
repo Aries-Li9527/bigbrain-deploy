@@ -1,4 +1,3 @@
-import React from 'react';
 import {
   Dialog,
   DialogTitle,
@@ -18,7 +17,7 @@ const SessionPopup = ({ open, sessionId, onClose }) => {
     try {
       await navigator.clipboard.writeText(fullUrl);
       alert('Link copied to clipboard!');
-    } catch (err) {
+    } catch (_) {
       alert('Failed to copy link.');
     }
   };
