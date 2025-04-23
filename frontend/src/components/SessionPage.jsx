@@ -112,9 +112,15 @@ const SessionPage = () => {
     if (!res.ok) {
       const data = await res.json();
       alert(data.error || 'Failed to advance question');
+      return;
     }
-    fetchStatus();
+  
+    // ✅ 延迟 1 秒后再获取新状态，确保后端处理完毕
+    setTimeout(() => {
+      fetchStatus();
+    }, 1000);
   };
+  
 
   // Stop the session
   const stopGame = async () => {
