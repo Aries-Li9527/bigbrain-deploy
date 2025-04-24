@@ -1,3 +1,7 @@
+// -----------------------------------------------------------
+// Load all games from backend when component is mounted
+// -----------------------------------------------------------
+
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import {
@@ -8,13 +12,16 @@ import { fetchAllGames } from '../DataProvider';
 import AUTH from '../Constant';
 
 const EditQuestion = () => {
-  const { game_id, question_id } = useParams();
+  const { game_id, question_id } = useParams(); // get params from URL
   const navigate = useNavigate();
 
-  const [questionData, setQuestionData] = useState(null);
-  const [answers, setAnswers] = useState([]);
-  const [type, setType] = useState('single');
+  const [questionData, setQuestionData] = useState(null); // current question object
+  const [answers, setAnswers] = useState([]); // answer options
+  const [type, setType] = useState('single'); // question type
 
+  // -----------------------------------------------------------
+  // Validate answers 
+  // -----------------------------------------------------------
   const validateAnswers = () => {
     const correctCount = answers.filter(ans => ans.correct).length;
     const hasEmptyText = answers.some(ans => !ans.text.trim());
@@ -75,6 +82,8 @@ const EditQuestion = () => {
 
       setQuestionData(q);
       setType(q.type || 'single');
+
+      // special handling for judgement type
       if (q.type === 'judgement') {
         const trueCorrect = q.optionAnswers?.find(ans => ans.text === 'True' && ans.correct);
         setAnswers([
@@ -82,6 +91,7 @@ const EditQuestion = () => {
           { text: 'False', correct: !trueCorrect }
         ]);
       } else {
+        // use existing or 2 default blank options
         setAnswers(q.optionAnswers?.length ? q.optionAnswers : [
           { text: '', correct: false },
           { text: '', correct: false },
@@ -94,8 +104,10 @@ const EditQuestion = () => {
 
   return (
     <Container maxWidth="md" sx={{ mt: 4 }}>
+      {/* Page title */}
       <Typography variant="h4" gutterBottom>Edit Question</Typography>
-
+  
+      {/* Question detail input */}
       <TextField
         label="Question details"
         fullWidth
@@ -103,7 +115,8 @@ const EditQuestion = () => {
         value={questionData.question}
         onChange={(e) => setQuestionData({ ...questionData, question: e.target.value })}
       />
-
+  
+      {/* Question type dropdown */}
       <FormControl fullWidth sx={{ mb: 2 }}>
         <InputLabel>Question Type</InputLabel>
         <Select
@@ -112,13 +125,15 @@ const EditQuestion = () => {
           onChange={(e) => {
             const newType = e.target.value;
             setType(newType);
-
+  
+            // Judgement has fixed two options
             if (newType === 'judgement') {
               setAnswers([
                 { text: 'True', correct: true },
                 { text: 'False', correct: false }
               ]);
             } else {
+              // Other types start with two empty options
               setAnswers([
                 { text: '', correct: false },
                 { text: '', correct: false }
@@ -131,7 +146,8 @@ const EditQuestion = () => {
           <MenuItem value="judgement">Judgement</MenuItem>
         </Select>
       </FormControl>
-
+  
+      {/* Duration in minutes */}
       <TextField
         label="Duration Limit (minutes)"
         type="number"
@@ -142,13 +158,12 @@ const EditQuestion = () => {
         onChange={(e) =>
           setQuestionData({
             ...questionData,
-            duration: Math.round(parseFloat(e.target.value || 0) * 60), // ⏱️ 转换为秒
+            duration: Math.round(parseFloat(e.target.value || 0) * 60), //Convert to seconds
           })
         }
       />
-
-
-
+  
+      {/* Point value */}
       <TextField
         label="Points"
         type="number"
@@ -160,8 +175,8 @@ const EditQuestion = () => {
           setQuestionData({ ...questionData, point: parseInt(e.target.value) || 0 })
         }
       />
-
-
+  
+      {/* Optional YouTube video */}
       <TextField
         label="YouTube Video URL (optional)"
         fullWidth
@@ -171,6 +186,8 @@ const EditQuestion = () => {
           setQuestionData({ ...questionData, video: e.target.value })
         }
       />
+  
+      {/* Optional image URL */}
       <TextField
         label="Image URL (optional)"
         fullWidth
@@ -180,9 +197,12 @@ const EditQuestion = () => {
           setQuestionData({ ...questionData, image: e.target.value })
         }
       />
+  
+      {/* Answer list */}
       <Typography variant="h6" sx={{ mt: 3 }}>Answers</Typography>
       {answers.map((answer, index) => (
         <Box key={index} sx={{ display: 'flex', alignItems: 'center', gap: 2, mt: 1 }}>
+          {/* Option input */}
           <TextField
             label={`Option ${index + 1}`}
             value={answer.text}
@@ -193,6 +213,8 @@ const EditQuestion = () => {
               setAnswers(newAnswers);
             }}
           />
+  
+          {/* Correct answer checkbox */}
           <FormControlLabel
             control={
               <Checkbox
@@ -200,10 +222,12 @@ const EditQuestion = () => {
                 onChange={(e) => {
                   const newAnswers = [...answers];
                   if (type === 'single' || type === 'judgement') {
+                    // Only one correct answer allowed
                     newAnswers.forEach((ans, i) => {
                       newAnswers[i].correct = i === index ? e.target.checked : false;
                     });
                   } else {
+                    // Multiple choice allows multiple correct answers
                     newAnswers[index].correct = e.target.checked;
                   }
                   setAnswers(newAnswers);
@@ -214,7 +238,8 @@ const EditQuestion = () => {
           />
         </Box>
       ))}
-
+  
+      {/* Add/remove options (non-judgement only) */}
       {type !== 'judgement' && (
         <Box sx={{ display: 'flex', gap: 2, mt: 2 }}>
           <Button
@@ -228,7 +253,7 @@ const EditQuestion = () => {
           >
             Add Answer
           </Button>
-
+  
           <Button
             variant="outlined"
             color="error"
@@ -245,7 +270,8 @@ const EditQuestion = () => {
           </Button>
         </Box>
       )}
-
+  
+      {/* Save and Cancel actions */}
       <Box sx={{ display: 'flex', gap: 2, mt: 4 }}>
         <Button
           variant="contained"
@@ -256,19 +282,27 @@ const EditQuestion = () => {
               const allGames = data.games || [];
               const targetGame = allGames.find(g => String(g.id) === game_id);
               if (!targetGame) return;
-
+  
+              // Update the current question
               const updatedQuestions = targetGame.questions.map((q) =>
                 String(q.id) === question_id
-                  ? { ...questionData, type, optionAnswers: answers }
+                  ? {
+                      ...questionData,
+                      type,
+                      optionAnswers: answers,
+                      correctAnswers: answers.filter(ans => ans.correct).map(ans => ans.text)
+                    }
                   : q
               );
-
+  
+              // Update game object
               const updatedGame = { ...targetGame, questions: updatedQuestions };
-
+  
               const updatedGames = allGames.map((g) =>
                 String(g.id) === game_id ? updatedGame : g
               );
-
+  
+              // Send PUT request to save
               return fetch('http://localhost:5005/admin/games', {
                 method: 'PUT',
                 headers: {
@@ -289,7 +323,7 @@ const EditQuestion = () => {
         >
           Save Question
         </Button>
-
+  
         <Button
           variant="outlined"
           color="secondary"
@@ -298,8 +332,6 @@ const EditQuestion = () => {
           Cancel
         </Button>
       </Box>
-
-
     </Container>
   );
 };
