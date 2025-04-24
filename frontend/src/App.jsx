@@ -10,6 +10,7 @@ import EditQuestion from './components/EditQuestion'
 import SessionPage from './components/SessionPage';
 import PlayScreen from './components/PlayScreen';
 import PlayerResult from './components/PlayerResult';
+import SessionResult from './components/SessionResult';
 
 
 function App() {
@@ -30,7 +31,8 @@ function App() {
         <Route path="/session/:session_id" element={<SessionPage />} />
         <Route path="/play/:session_id" element={<PlayScreen />} />
         <Route path="/result/:session_id/:player_id" element={<PlayerResult />} />
-        
+        <Route path="/session/:session_id/results" element={<SessionResult />} />
+
       </Routes>
     </BrowserRouter>
   );
