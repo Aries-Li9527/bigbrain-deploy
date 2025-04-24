@@ -5,6 +5,7 @@ import CardContent from '@mui/material/CardContent';
 import CardMedia from '@mui/material/CardMedia';
 import Button from '@mui/material/Button';
 import Typography from '@mui/material/Typography';
+import { Box } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import StartSession from './StartSession';
 import AUTH from '../Constant';
@@ -52,7 +53,7 @@ const CardShape = (props) => {
 
   return (
     // Card container with flex layout
-    <div style={{ display: 'flex', gap: '15px', flexWrap: 'wrap' }}>
+    <Box sx={{ display: 'flex', gap: '15px', flexWrap: 'wrap' }}>
       {games.map((game) => (
         <Card key={game.id} sx={{ maxWidth: 345 }}>
           {/* Game thumbnail */}
@@ -71,13 +72,22 @@ const CardShape = (props) => {
 
             {/* question */}
             <Typography variant="body2" color="text.secondary">
-              Questions: {game.questions?.length ?? 0}
+              <strong>The number of questions:</strong>&nbsp;
+              {game.questions?.length ?? 0}
             </Typography>
 
-            {/* Total Duration */}
             <Typography variant="body2" color="text.secondary">
-              Total Duration: {(game.questions?.reduce((sum, q) => sum + (q.duration || 0), 0) / 60).toFixed(2)} min
+              <strong>Total Duration:</strong>&nbsp;
+              {
+                (() => {
+                  const totalSec = game.questions?.reduce((sum, q) => sum + (q.duration || 0), 0) ?? 0;
+                  const totalMin = (totalSec / 60).toFixed(2);
+                  return `${totalSec} sec (${totalMin} min)`;
+                })()
+              }
             </Typography>
+
+
 
 
           </CardContent>
@@ -107,7 +117,7 @@ const CardShape = (props) => {
           </CardActions>
         </Card>
       ))}
-    </div>
+    </Box>
   );
 };
 

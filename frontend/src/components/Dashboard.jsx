@@ -30,7 +30,14 @@ const Dashboard = () => {
   // -------------------------------
   const [open, setOpen] = useState(false);
   const handleOpen = () => setOpen(true);
-  const handleClose = () => setOpen(false);
+  const handleClose = () => {
+    setOpen(false);
+    setTitle('');
+    setUploadFile(null);
+    setUserTypedTitle(false);
+    setIsUploadLocked(false);
+  };
+
 
   // -------------------------------
   // Title input for new game
@@ -41,8 +48,10 @@ const Dashboard = () => {
   // List of all games for the current user
   // -------------------------------
   const [games, setGames] = useState([]);
-
+  const [userTypedTitle, setUserTypedTitle] = useState(false);
+  const [isUploadLocked, setIsUploadLocked] = useState(false);
   const [uploadFile, setUploadFile] = useState(null);
+
 
   // -------------------------------------------------------
   // Post new game to backend, based on current game list
@@ -60,7 +69,11 @@ const Dashboard = () => {
         try {
           // Parse the uploaded file content as JSON
           const content = JSON.parse(event.target.result);
-          setTitle(content.name);
+          if (!userTypedTitle) {
+            setTitle(content.name || '');
+            setIsUploadLocked(true);
+          }
+
 
           // Basic validation: check if required fields exist
           if (!content.name || !Array.isArray(content.questions)) {
@@ -95,7 +108,9 @@ const Dashboard = () => {
           alert('Game uploaded successfully!');
           handleClose();            // Close modal
           setTitle('');             // Clear input
+          setUserTypedTitle(false);
           setUploadFile(null);      // Reset file state
+          setIsUploadLocked(false);
           getGames();               // Refresh game list
 
         } catch (_) {
@@ -135,6 +150,7 @@ const Dashboard = () => {
       window.alert("Game created successfully!");
       handleClose();
       setTitle('');
+      setUserTypedTitle(false);
       getGames();
     });
   };
@@ -218,14 +234,17 @@ const Dashboard = () => {
 
           <br />
 
-          {/* Input field for game name */}
           <TextField
             required
             fullWidth
             id="game-title-input"
             label="Enter game title"
             value={title}
-            onChange={(e) => setTitle(e.target.value)}
+            disabled={isUploadLocked} // 👈 只有上传 JSON 并自动填标题时才禁用
+            onChange={(e) => {
+              setTitle(e.target.value);
+              setUserTypedTitle(true);
+            }}
           />
 
           <br /><br />
@@ -245,17 +264,32 @@ const Dashboard = () => {
                 id="upload-json"
                 type="file"
                 accept=".json"
-                style={{ display: 'none' }}
+                style={{ display: 'none' }} 
                 onChange={(e) => {
                   const file = e.target.files[0];
                   if (file) {
                     setUploadFile(file);
+
+                    const reader = new FileReader();
+                    reader.onload = (event) => {
+                      try {
+                        const content = JSON.parse(event.target.result);
+                        if (content.name && !userTypedTitle) {
+                          setTitle(content.name);
+                          setIsUploadLocked(true);
+                        }
+                      } catch {
+                        alert('Invalid JSON file');
+                      }
+                    };
+                    reader.readAsText(file);
                   }
                 }}
               />
               <Button variant="outlined" component="span">
-                {uploadFile ? uploadFile.name : "Choose File"}
+                Choose File
               </Button>
+
             </label>
 
 
@@ -263,7 +297,7 @@ const Dashboard = () => {
             <Button
               variant="contained"
               onClick={postNewGame}
-              disabled={!title.trim() && !uploadFile} 
+              disabled={!title.trim() && !uploadFile}
             >
               Submit
             </Button>
