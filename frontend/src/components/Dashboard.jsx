@@ -41,12 +41,74 @@ const Dashboard = () => {
   // List of all games for the current user
   // -------------------------------
   const [games, setGames] = useState([]);
+
+  const [uploadFile, setUploadFile] = useState(null);
+
   // -------------------------------------------------------
   // Post new game to backend, based on current game list
   // -------------------------------------------------------
   const postNewGame = () => {
     const ownerEmail = localStorage.getItem(AUTH.USER_KEY);
     const userToken = localStorage.getItem(AUTH.TOKEN_KEY);
+
+    // If the user uploads a json file, follow the file upload path
+    if (uploadFile) {
+      const reader = new FileReader();
+
+      // When the file is read
+      reader.onload = async (event) => {
+        try {
+          // Parse the uploaded file content as JSON
+          const content = JSON.parse(event.target.result);
+          setTitle(content.name);
+
+          // Basic validation: check if required fields exist
+          if (!content.name || !Array.isArray(content.questions)) {
+            alert('Invalid JSON structure');
+            return;
+          }
+
+          // Add required fields: owner and id
+          content.owner = ownerEmail;
+          content.id = Math.floor(Math.random() * 100000000);
+
+          // Ensure thumbnail field exists (default to empty string)
+          if (!content.thumbnail) content.thumbnail = '';
+
+          // Fetch existing games from backend
+          const oldGame = await fetchAllGames().then(d => d.games || []);
+
+          // Add the new game to the existing list
+          const updatedGames = [...oldGame, content];
+
+          // Upload the updated game list to the backend via PUT request
+          await fetch('http://localhost:5005/admin/games', {
+            method: 'PUT',
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: `Bearer ${userToken}`,
+            },
+            body: JSON.stringify({ games: updatedGames }),
+          });
+
+          // Notify user and reset UI state
+          alert('Game uploaded successfully!');
+          handleClose();            // Close modal
+          setTitle('');             // Clear input
+          setUploadFile(null);      // Reset file state
+          getGames();               // Refresh game list
+
+        } catch (_) {
+          // Show error if JSON parsing fails
+          alert('Error parsing uploaded JSON');
+        }
+      };
+
+      // Start reading the file as text
+      reader.readAsText(uploadFile);
+      return;
+    }
+
 
     fetchAllGames().then((data) => {
       const oldGame = Array.isArray(data.games) ? data.games : [];
@@ -80,12 +142,12 @@ const Dashboard = () => {
   const deleteGame = (gameId) => {
     const confirmDelete = window.confirm("Are you sure you want to delete this game?");
     if (!confirmDelete) return;
-  
+
     const userToken = localStorage.getItem(AUTH.TOKEN_KEY);
-  
+
     fetchAllGames().then((data) => {
       const updatedGames = data.games.filter(game => String(game.id) !== String(gameId));
-  
+
       return fetch('http://localhost:5005/admin/games', {
         method: 'PUT',
         headers: {
@@ -103,8 +165,6 @@ const Dashboard = () => {
       }
     });
   };
-  
-
   // -------------------------------------------------------
   // Load all games from backend when component is mounted
   // -------------------------------------------------------
@@ -153,7 +213,7 @@ const Dashboard = () => {
         <Box sx={style}>
           {/*  Modal Title */}
           <Typography id="modal-modal-title" variant="h6" component="h2">
-          Create a new game here!
+            Create a new game here!
           </Typography>
 
           <br />
@@ -180,11 +240,30 @@ const Dashboard = () => {
               Cancel
             </Button>
 
+            <label htmlFor="upload-json">
+              <input
+                id="upload-json"
+                type="file"
+                accept=".json"
+                style={{ display: 'none' }}
+                onChange={(e) => {
+                  const file = e.target.files[0];
+                  if (file) {
+                    setUploadFile(file);
+                  }
+                }}
+              />
+              <Button variant="outlined" component="span">
+                {uploadFile ? uploadFile.name : "Choose File"}
+              </Button>
+            </label>
+
+
             {/* Submit */}
             <Button
               variant="contained"
               onClick={postNewGame}
-              disabled={!title.trim()}
+              disabled={!title.trim() && !uploadFile} 
             >
               Submit
             </Button>
