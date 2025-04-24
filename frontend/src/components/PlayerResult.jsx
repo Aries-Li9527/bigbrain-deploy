@@ -9,29 +9,58 @@ import {
   TableCell,
   TableBody,
 } from '@mui/material';
+import AUTH from '../Constant';
 
 const PlayerResult = () => {
-  const { player_id } = useParams(); // Get player_id from route
+  const { player_id } = useParams();
   const [results, setResults] = useState([]);
+  const [questionPoints, setQuestionPoints] = useState([]);
+  const [questionTexts, setQuestionTexts] = useState([]);
+  const [totalScore, setTotalScore] = useState(0);
+  const [maxScore, setMaxScore] = useState(0);
 
-  // Fetch player answer results
   useEffect(() => {
-    const fetchResults = async () => {
+    const fetchData = async () => {
       try {
-        const res = await fetch(`http://localhost:5005/play/${player_id}/results`);
-        if (!res.ok) throw new Error('Failed to fetch');
-        const data = await res.json();
-        setResults(data);
+        // 1. 获取玩家答题记录
+        const res1 = await fetch(`http://localhost:5005/play/${player_id}/results`);
+        if (!res1.ok) throw new Error('Failed to fetch player results');
+        const resultData = await res1.json();
+
+        // 2. 获取后台所有游戏信息
+        const token = localStorage.getItem(AUTH.TOKEN_KEY);
+        const email = localStorage.getItem(AUTH.USER_KEY);
+        const res2 = await fetch('http://localhost:5005/admin/games', {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        const { games } = await res2.json();
+
+        // 3. 找到当前用户的游戏（假设只有一个）
+        const game = games.find(g => g.owner === email);
+        const questions = game?.questions || [];
+
+        const points = questions.map(q => q.point || 0);
+        const texts = questions.map(q => q.question || 'Untitled Question');
+
+        const total = points.reduce((acc, val) => acc + val, 0);
+        const score = resultData.reduce((sum, r, i) => {
+          return r.correct ? sum + (points[i] || 0) : sum;
+        }, 0);
+
+        setResults(resultData);
+        setQuestionPoints(points);
+        setQuestionTexts(texts);
+        setTotalScore(score);
+        setMaxScore(total);
       } catch (err) {
-        console.error('Failed to fetch results:', err);
-        setResults(null); // null means error
+        console.error(err);
+        setResults(null);
       }
     };
 
-    fetchResults();
+    fetchData();
   }, [player_id]);
 
-  // Display error message if fetch failed
   if (results === null) {
     return (
       <Box sx={{ p: 4 }}>
@@ -42,7 +71,6 @@ const PlayerResult = () => {
     );
   }
 
-  // Render result table
   return (
     <Box sx={{ p: 4 }}>
       <Typography variant="h4" gutterBottom>Quiz Results</Typography>
@@ -52,6 +80,7 @@ const PlayerResult = () => {
             <TableCell>Question</TableCell>
             <TableCell>Correct</TableCell>
             <TableCell>Time Taken (s)</TableCell>
+            <TableCell>Points</TableCell>
           </TableRow>
         </TableHead>
         <TableBody>
@@ -61,14 +90,29 @@ const PlayerResult = () => {
               : '-';
             return (
               <TableRow key={i}>
-                <TableCell>Q{i + 1}</TableCell>
+                <TableCell>
+                  <strong>Q{i + 1}</strong>
+                  <br />
+                  <Typography variant="body2" sx={{ whiteSpace: 'pre-wrap' }}>
+                    {questionTexts[i]}
+                  </Typography>
+                </TableCell>
                 <TableCell>{r.correct ? 'Yes' : 'No'}</TableCell>
                 <TableCell>{time}</TableCell>
+                <TableCell>
+                  {r.correct ? `${questionPoints[i] || 0} / ${questionPoints[i] || 0}` : `0 / ${questionPoints[i] || 0}`}
+                </TableCell>
+
               </TableRow>
             );
           })}
         </TableBody>
       </Table>
+
+      {/* Total score display */}
+      <Typography variant="h5" sx={{ mt: 4 }}>
+        Total Score: {totalScore} / {maxScore}
+      </Typography>
     </Box>
   );
 };
