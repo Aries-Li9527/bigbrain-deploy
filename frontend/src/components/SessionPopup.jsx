@@ -5,7 +5,6 @@ import {
   DialogActions,
   Button,
   Typography,
-  Box
 } from '@mui/material';
 
 // SessionPopup component displays a dialog with session ID, join link, and options to copy or navigate
