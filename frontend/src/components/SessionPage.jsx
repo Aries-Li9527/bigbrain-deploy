@@ -8,7 +8,7 @@ import {
 import {
   ResponsiveContainer, BarChart, Bar, LineChart, Line, XAxis, YAxis, Tooltip
 } from 'recharts';
-
+import AdvancedPointsExplanation from './AdvancedPointsExplanation';
 
 const SessionPage = () => {
   const { session_id } = useParams(); // Get session ID from URL
@@ -228,6 +228,11 @@ const SessionPage = () => {
           <Button variant="outlined" color="error" onClick={stopGame}>Stop Game</Button>
         </Box>
       )}
+
+      <Box sx={{ mt: 6 }}>
+        <AdvancedPointsExplanation />
+      </Box>
+
     </Box>
   );
 };

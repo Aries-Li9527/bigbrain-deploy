@@ -9,6 +9,7 @@ import {
   ResponsiveContainer, BarChart, Bar, LineChart, Line, XAxis, YAxis, Tooltip
 } from 'recharts';
 import AUTH from '../Constant';
+import AdvancedPointsExplanation from './AdvancedPointsExplanation';
 
 const SessionResult = () => {
   const { session_id } = useParams(); // Get session ID from route params
@@ -29,18 +30,23 @@ const SessionResult = () => {
       const qLabels = Array.from({ length: numQuestions }, (_, i) => `Q${i + 1}`);
 
       // Process each player: extract name, score (count of correct answers), and their answers
-      const processedPlayers = results.map(p => ({
-        name: p.name,
-        score: p.answers.filter(a => a.correct).length,
-        answers: p.answers
-      }));
+      const processedPlayers = results.map(p => {
+        const score = p.answers.filter(a => a.correct).length;
+        const points = p.answers.reduce((total, a) => {
+          if (!a.correct || !a.answeredAt || !a.questionStartedAt || !a.questionPoints || !a.questionTimeLimit) return total;
+          const timeTaken = (new Date(a.answeredAt) - new Date(a.questionStartedAt)) / 1000;
+          const timeRemaining = Math.max(a.questionTimeLimit - timeTaken, 0);
+          return total + timeRemaining * a.questionPoints;
+        }, 0);
+        return { name: p.name, score, advancedScore: points, answers: p.answers };
+      });
 
       // Update states
       setPlayers(processedPlayers);
       setQuestions(qLabels);
     };
 
-    fetchResults(); 
+    fetchResults();
   }, [session_id]);
 
   // Construct chart data for each question
@@ -67,7 +73,12 @@ const SessionResult = () => {
 
   // Get top 5 players sorted by score
   const topPlayers = [...players]
-    .sort((a, b) => b.score - a.score)
+    .sort((a, b) => {
+      if (b.score === a.score) {
+        return b.advancedScore - a.advancedScore;
+      }
+      return b.score - a.score;
+    })
     .slice(0, 5);
 
   // Show loading spinner while waiting for data
@@ -86,6 +97,7 @@ const SessionResult = () => {
           <TableRow>
             <TableCell>Player</TableCell>
             <TableCell>Score</TableCell>
+            <TableCell>Advanced Score</TableCell>
           </TableRow>
         </TableHead>
         <TableBody>
@@ -93,6 +105,7 @@ const SessionResult = () => {
             <TableRow key={idx}>
               <TableCell>{player.name}</TableCell>
               <TableCell>{player.score}</TableCell>
+              <TableCell>{(player.advancedScore ?? 0).toFixed(2)}</TableCell>
             </TableRow>
           ))}
         </TableBody>
@@ -133,10 +146,14 @@ const SessionResult = () => {
       <Box sx={{ mt: 6 }}>
         <Button
           variant="outlined"
-          onClick={() => window.history.back()} 
+          onClick={() => window.history.back()}
         >
           back
         </Button>
+      </Box>
+
+      <Box sx={{ mt: 6 }}>
+        <AdvancedPointsExplanation />
       </Box>
 
     </Box>

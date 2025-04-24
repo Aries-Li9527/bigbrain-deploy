@@ -11,7 +11,7 @@ import SessionPage from './components/SessionPage';
 import PlayScreen from './components/PlayScreen';
 import PlayerResult from './components/PlayerResult';
 import SessionResult from './components/SessionResult';
-
+import AdvancedPointsExplanation from './components/AdvancedPointsExplanation';
 
 function App() {
   const [token, setToken] = useState(localStorage.getItem('token'));
@@ -32,6 +32,7 @@ function App() {
         <Route path="/play/:session_id" element={<PlayScreen />} />
         <Route path="/result/:session_id/:player_id" element={<PlayerResult />} />
         <Route path="/session/:session_id/results" element={<SessionResult />} />
+        <Route path="/points-explanation" element={<AdvancedPointsExplanation />} />
 
       </Routes>
     </BrowserRouter>

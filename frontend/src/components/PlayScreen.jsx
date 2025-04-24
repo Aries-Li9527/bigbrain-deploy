@@ -1,5 +1,6 @@
 import { useParams, useNavigate } from 'react-router-dom'; // Get URL params and navigation hook
 import { useEffect, useState } from 'react'; // React hooks for state and side effects
+import Lobby from './Lobby';
 // PlayScreen component: the main view for a player during the game
 
 const PlayScreen = () => {
@@ -149,11 +150,7 @@ const PlayScreen = () => {
     );
   }
   if (stage === 'waiting') {
-    return (
-      <div style={{ padding: 40 }}>
-        <h2>Please wait for the game to start...</h2>
-      </div>
-    );
+    return <Lobby />;
   }
   if (stage === 'question') {
     if (!question || !question.question || !Array.isArray(question.optionAnswers)) {
