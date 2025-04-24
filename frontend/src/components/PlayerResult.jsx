@@ -12,7 +12,10 @@ import {
 import AUTH from '../Constant';
 
 const PlayerResult = () => {
-  const { player_id } = useParams();
+  // Extract session ID and player ID from the URL parameters
+  const { session_id, player_id } = useParams();
+
+  // States to hold player results, question points, question texts, total score, and max score
   const [results, setResults] = useState([]);
   const [questionPoints, setQuestionPoints] = useState([]);
   const [questionTexts, setQuestionTexts] = useState([]);
@@ -22,31 +25,30 @@ const PlayerResult = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        // 1. 获取玩家答题记录
+        // 1. Fetch the player's answer results
         const res1 = await fetch(`http://localhost:5005/play/${player_id}/results`);
         if (!res1.ok) throw new Error('Failed to fetch player results');
         const resultData = await res1.json();
 
-        // 2. 获取后台所有游戏信息
+        // 2. Fetch the session status to get the game questions
         const token = localStorage.getItem(AUTH.TOKEN_KEY);
-        const email = localStorage.getItem(AUTH.USER_KEY);
-        const res2 = await fetch('http://localhost:5005/admin/games', {
-          headers: { Authorization: `Bearer ${token}` },
+        const res2 = await fetch(`http://localhost:5005/admin/session/${session_id}/status`, {
+          headers: { Authorization: `Bearer ${token}` }
         });
-        const { games } = await res2.json();
+        const sessionData = await res2.json();
+        const questions = sessionData.results?.questions || [];
 
-        // 3. 找到当前用户的游戏（假设只有一个）
-        const game = games.find(g => g.owner === email);
-        const questions = game?.questions || [];
-
+        // 3. Extract points and texts from each question
         const points = questions.map(q => q.point || 0);
         const texts = questions.map(q => q.question || 'Untitled Question');
 
+        // 4. Calculate total possible score and actual score based on correct answers
         const total = points.reduce((acc, val) => acc + val, 0);
         const score = resultData.reduce((sum, r, i) => {
           return r.correct ? sum + (points[i] || 0) : sum;
         }, 0);
 
+        // Update states with the fetched and calculated data
         setResults(resultData);
         setQuestionPoints(points);
         setQuestionTexts(texts);
@@ -54,13 +56,15 @@ const PlayerResult = () => {
         setMaxScore(total);
       } catch (err) {
         console.error(err);
+        // Set results to null to trigger error message in UI
         setResults(null);
       }
     };
-
+    // Trigger data fetch on component mount or param change
     fetchData();
-  }, [player_id]);
+  }, [session_id, player_id]);
 
+  // Render an error message if data failed to load
   if (results === null) {
     return (
       <Box sx={{ p: 4 }}>
