@@ -50,7 +50,6 @@ const EditGame = () => {
   const handleClose = () => setOpen(false);
 
   // -----------------------------------------------
-  // 初始加载游戏数据（通过 game_id 匹配）
   // Load game data on mount
   // -----------------------------------------------
   useEffect(() => {
@@ -59,12 +58,14 @@ const EditGame = () => {
       if (foundGame) {
         setGame(foundGame);
         setQuestions(foundGame.questions);
+        setName(foundGame.name);
+        setThumbnail(foundGame.thumbnail);
       }
     });
-  }, [questions]);
+  }, [game_id]);
+
 
   // ---------------------------------------------------
-  // 保存当前游戏基本信息（标题和缩略图）
   // Save updated game name and thumbnail
   // ---------------------------------------------------
   const saveUpdateGame = () => {
@@ -159,21 +160,21 @@ const EditGame = () => {
       const allGames = Array.isArray(data.games) ? data.games : [];
       const targetGame = allGames.find((game) => String(game.id) === game_id);
 
-      // 过滤掉目标问题
+      // Filter out the target problem
       const updatedQuestions = targetGame.questions.filter((q) => q.id !== questionId);
 
-      // 构建更新后的 game 对象
+      // Build the updated game object
       const updatedGame = {
         ...targetGame,
         questions: updatedQuestions,
       };
 
-      // 替换更新后的 game 到全体 games 列表中
+      // Replace the updated game to the list of all games
       const updatedGames = allGames.map((g) =>
         String(g.id) === game_id ? updatedGame : g
       );
 
-      // 发送更新请求
+      // Send an update request
       return fetch('http://localhost:5005/admin/games', {
         method: 'PUT',
         headers: {
@@ -188,9 +189,6 @@ const EditGame = () => {
     });
   };
 
-
-  // ------------------------------------------------------------
-  // ------------------------------------------------------------
   const handleEditQuestion = (questionId) => {
     navigate(`/game/${game_id}/question/${questionId}`);
   };
@@ -272,8 +270,9 @@ const EditGame = () => {
           key={q.id}
           sx={{
             display: 'flex',
-            flexDirection: 'column',
-            gap: 1.5,
+            flexDirection: 'row',
+            justifyContent: 'space-between',
+            alignItems: 'center',
             p: 3,
             border: '1px solid #e0e0e0',
             borderRadius: 3,
@@ -287,51 +286,49 @@ const EditGame = () => {
             },
           }}
         >
-          {/* ID - Display question ID */}
-          <Typography variant="subtitle2" color="text.secondary">
-            Question ID: {q.id}
-          </Typography>
-
-          {/* Display question content */}
-          <Typography variant="body1" fontWeight={500}>
-            Question: {q.question || <i style={{ color: '#aaa' }}>No question content</i>}
-          </Typography>
-          {q.video && (
-            <Typography variant="body2" color="text.secondary">
-              <a href={q.video} target="_blank" rel="noopener noreferrer">YouTube Video</a>
+          {/* The left information area */}
+          <Box sx={{ flex: 1 }}>
+            <Typography variant="subtitle2" color="text.secondary">
+              Question ID: {q.id}
             </Typography>
-          )}
-
-          {q.image && (
-            <Typography variant="body2" color="text.secondary">
-              <a href={q.image} target="_blank" rel="noopener noreferrer">Image</a>
+            <Typography variant="body1" fontWeight={500}>
+              Question: {q.question || <i style={{ color: '#aaa' }}>No question content</i>}
             </Typography>
-          )}
 
+            {q.video && (
+              <Typography variant="body2" color="text.secondary">
+                <a href={q.video} target="_blank" rel="noopener noreferrer">YouTube Video</a>
+              </Typography>
+            )}
 
-          {/* Action Buttons */}
-          <Box sx={{ display: 'flex', gap: 2, mt: 1 }}>
-            {/* Edit Button */}
-            <Button
-              size="small"
-              variant="outlined"
-              onClick={() => handleEditQuestion(q.id)}
-            >
-              Edit
-            </Button>
-
-            {/* Delete Button */}
-            <Button
-              size="small"
-              variant="outlined"
-              color="error"
-              onClick={() => handleDeleteQuestion(q.id)}
-            >
-              Delete
-            </Button>
+            {/* Action Buttons */}
+            <Box sx={{ display: 'flex', gap: 2, mt: 1 }}>
+              <Button size="small" variant="outlined" onClick={() => handleEditQuestion(q.id)}>
+                Edit
+              </Button>
+              <Button size="small" variant="outlined" color="error" onClick={() => handleDeleteQuestion(q.id)}>
+                Delete
+              </Button>
+            </Box>
           </Box>
+
+          {/* The picture area on the right */}
+          {q.image && (
+            <Box
+              component="img"
+              src={q.image}
+              alt="Thumbnail"
+              sx={{
+                width: 90,
+                height: 'auto',
+                borderRadius: 2,
+              }}
+            />
+
+          )}
         </Box>
       ))}
+
     </Container>
   );
 };

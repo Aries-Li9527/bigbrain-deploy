@@ -6,10 +6,11 @@ import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import {
   Container, Typography, TextField, Box, Button,
-  MenuItem, Select, InputLabel, FormControl, Checkbox, FormControlLabel,
+  MenuItem, Select, InputLabel, FormControl, Checkbox, FormControlLabel, Menu
 } from '@mui/material';
 import { fetchAllGames } from '../DataProvider';
 import AUTH from '../Constant';
+
 
 const EditQuestion = () => {
   const { game_id, question_id } = useParams(); // get params from URL
@@ -100,6 +101,19 @@ const EditQuestion = () => {
     });
   }, [game_id, question_id]);
 
+  const [anchorEl, setAnchorEl] = useState(null);
+  const open = Boolean(anchorEl);
+  const handleClick = (event) => {
+    setAnchorEl(event.currentTarget);
+  };
+  const handleClose = (value) => {
+    setAnchorEl(null);
+    if (value) {
+      setQuestionData({ ...questionData, duration: value });
+    }
+  };
+
+
   if (!questionData) return <div>Loading...</div>;
 
   return (
@@ -147,21 +161,36 @@ const EditQuestion = () => {
         </Select>
       </FormControl>
 
-      {/* Duration in minutes */}
-      <TextField
-        label="Duration Limit (minutes)"
-        type="number"
-        placeholder="e.g. 1"
-        fullWidth
-        sx={{ mb: 2 }}
-        value={questionData.duration === 0 ? '' : questionData.duration / 60}
-        onChange={(e) =>
-          setQuestionData({
-            ...questionData,
-            duration: Math.round(parseFloat(e.target.value || 0) * 60), //Convert to seconds
-          })
-        }
-      />
+      <Box sx={{ display: 'flex', gap: 2, mb: 2 }}>
+        <TextField
+          label="Duration (seconds)"
+          type="number"
+          placeholder="e.g. 30"
+          fullWidth
+          value={questionData.duration || ''}
+          onChange={(e) =>
+            setQuestionData({
+              ...questionData,
+              duration: parseInt(e.target.value) || 0
+            })
+          }
+        />
+        <Button variant="outlined" onClick={handleClick}>
+          Recommend
+        </Button>
+        <Menu
+          anchorEl={anchorEl}
+          open={open}
+          onClose={() => handleClose(null)}
+        >
+          {[30, 60, 90, 120].map((value) => (
+            <MenuItem key={value} onClick={() => handleClose(value)}>
+              {value} seconds
+            </MenuItem>
+          ))}
+        </Menu>
+      </Box>
+
 
       {/* Point value */}
       <TextField
