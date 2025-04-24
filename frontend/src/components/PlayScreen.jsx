@@ -1,41 +1,69 @@
-import { useParams } from 'react-router-dom';
-import { useEffect, useState } from 'react';
+import { useParams, useNavigate } from 'react-router-dom'; // Get URL params and navigation hook
+import { useEffect, useState } from 'react'; // React hooks for state and side effects
+// PlayScreen component: the main view for a player during the game
 
 const PlayScreen = () => {
-  const { session_id } = useParams();
-  const [stage, setStage] = useState('loading');
-  const [playerName, setPlayerName] = useState('');
-  const [playerId, setPlayerId] = useState(null);
-  const [position, setPosition] = useState(-1);
-  const [lastKnownPosition, setLastKnownPosition] = useState(-2);
+  const { session_id } = useParams(); // Get session ID from the URL
+  const [stage, setStage] = useState('loading'); // Current stage of the screen
+  const [playerName, setPlayerName] = useState(''); // Input name from the player
+  const [playerId, setPlayerId] = useState(null); // Player ID returned by the server
+  const navigate = useNavigate(); // Navigation function
 
-  const [question, setQuestion] = useState(null);
-  const [selected, setSelected] = useState([]);
-  const [durationLeft, setTimeLeft] = useState(null);
-  const [questionFetched, setQuestionFetched] = useState(false);
+  const [position, setPosition] = useState(-1); // Current question index
+  const [lastKnownPosition, setLastKnownPosition] = useState(-2); // Previous known question index
 
+  const [question, setQuestion] = useState(null); // Current question data
+  const [selected, setSelected] = useState([]); // Selected answers
+  const [durationLeft, setTimeLeft] = useState(null); // Remaining time for the question
+  const [questionFetched, setQuestionFetched] = useState(false); // Whether the question has been fetched
+
+  // Check if the session has ended
+  const checkSessionEnded = async () => {
+    const res = await fetch(`http://localhost:5005/admin/session/${session_id}/status`, {
+      headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
+    });
+    if (!res.ok) return false;
+    const data = await res.json();
+    return data.active === false;
+  };
+  // Fetch player's current status in the game
   const fetchStatus = async () => {
     if (!playerId) return;
+
     const res = await fetch(`http://localhost:5005/play/${playerId}/status`);
     const data = await res.json();
 
-    if (res.ok) {
-      const newPosition = data.position;
-      setPosition(newPosition);
-
-      if (newPosition === -1) {
-        setStage('waiting');
-        setQuestionFetched(false);
-        setTimeLeft(null);
-      } else if (newPosition !== lastKnownPosition) {
-        console.log('🎯 New question incoming...');
-        setLastKnownPosition(newPosition);
-        setQuestionFetched(false);
-        setTimeout(fetchQuestion, 1000); // 1 秒后 fetch 新题
+    if (!res.ok) {
+      console.warn('fetchStatus failed:', data);
+      if (data.error?.includes('not an active session')) {
+        // Redirect if backend says session is over
+        navigate(`/result/${session_id}/${playerId}`);
       }
+      return;
+    }
+
+    const newPosition = data.position;
+    setPosition(newPosition);
+
+    const ended = await checkSessionEnded();
+    if (ended) {
+      // Redirect to results if session is ended
+      navigate(`/result/${session_id}/${playerId}`);
+      return;
+    }
+    if (newPosition === -1) {
+      // Waiting for next question
+      setStage('waiting');
+      setQuestionFetched(false);
+      setTimeLeft(null);
+    } else if (newPosition !== lastKnownPosition) {
+      // New question available
+      setLastKnownPosition(newPosition);
+      setQuestionFetched(false);
+      setTimeout(fetchQuestion, 1000);
     }
   };
-
+  // Fetch the current question data
   const fetchQuestion = async () => {
     if (!playerId || questionFetched) return;
 
@@ -45,12 +73,8 @@ const PlayScreen = () => {
       console.warn('fetchQuestion failed:', errorText);
       return;
     }
-
     const data = await res.json();
     const q = data.question;
-
-    console.log('✅ Fetched Question:', q);
-
     setQuestion(q);
     setQuestionFetched(true);
     setSelected([]);
@@ -59,28 +83,24 @@ const PlayScreen = () => {
     const now = new Date();
     const secondsPassed = Math.floor((now - start) / 1000);
     const remaining = q.duration - secondsPassed;
-
     setTimeLeft(remaining > 0 ? remaining : 0);
     setStage('question');
   };
-
-
+  // Submit selected answers to the backend
   const submitAnswer = async (answerIds) => {
     if (!playerId || !answerIds || answerIds.length === 0) return;
 
     const res = await fetch(`http://localhost:5005/play/${playerId}/answer`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ answers: answerIds }),  // ✅ 注意是 answers
+      body: JSON.stringify({ answers: answerIds }),
     });
-
     const data = await res.json();
     if (!res.ok) {
-      console.warn('❌ Submit error:', data);
+      console.warn('Submit error:', data);
     }
   };
-
-
+  // Join the session using player name
   const joinSession = async () => {
     const res = await fetch(`http://localhost:5005/play/join/${session_id}`, {
       method: 'POST',
@@ -96,7 +116,7 @@ const PlayScreen = () => {
       alert(data.error || 'Failed to join session');
     }
   };
-
+  // On playerId change, start polling the game status
   useEffect(() => {
     if (!playerId) {
       setStage('join');
@@ -106,16 +126,15 @@ const PlayScreen = () => {
       return () => clearInterval(interval);
     }
   }, [playerId]);
-
+  // Countdown for each question
   useEffect(() => {
     if (stage === 'question' && durationLeft !== null && durationLeft > 0) {
       const t = setTimeout(() => setTimeLeft(durationLeft - 1), 1000);
       return () => clearTimeout(t);
     }
   }, [durationLeft, stage]);
-
+  // Render different UI based on stage
   if (stage === 'loading') return <p>Loading...</p>;
-
   if (stage === 'join') {
     return (
       <div style={{ padding: 40 }}>
@@ -129,7 +148,6 @@ const PlayScreen = () => {
       </div>
     );
   }
-
   if (stage === 'waiting') {
     return (
       <div style={{ padding: 40 }}>
@@ -137,12 +155,10 @@ const PlayScreen = () => {
       </div>
     );
   }
-
   if (stage === 'question') {
     if (!question || !question.question || !Array.isArray(question.optionAnswers)) {
       return <p>Waiting for question data...</p>;
     }
-
     return (
       <div style={{ padding: 40 }}>
         <h2>{question.question}</h2>
@@ -154,7 +170,7 @@ const PlayScreen = () => {
             <button
               key={ans.text}
               onClick={() => {
-                const value = idx;  // ✅ 改成索引
+                const value = idx;
                 const newSelected = question.type === 'multiple'
                   ? selected.includes(value)
                     ? selected.filter(i => i !== value)
@@ -162,8 +178,7 @@ const PlayScreen = () => {
                   : [value];
 
                 setSelected(newSelected);
-                console.log('✅ Submit these IDs to backend:', newSelected);
-                submitAnswer(newSelected); // ✅ 提交 index 数组
+                submitAnswer(newSelected.map(i => question.optionAnswers[i].text));
               }}
               style={{
                 background: selected.includes(idx) ? '#90ee90' : '',
@@ -178,7 +193,6 @@ const PlayScreen = () => {
       </div>
     );
   }
-
   return null;
 };
 
