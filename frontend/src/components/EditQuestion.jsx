@@ -117,7 +117,14 @@ const EditQuestion = () => {
   if (!questionData) return <div>Loading...</div>;
 
   return (
-    <Container maxWidth="md" sx={{ mt: 4 }}>
+    <Container
+      maxWidth="md"
+      sx={{
+        mt: 4,
+        px: { xs: 2, sm: 3 },
+        py: { xs: 2, sm: 3 }
+      }}
+    >
       {/* Page title */}
       <Typography variant="h4" gutterBottom>Edit Question</Typography>
 
@@ -230,7 +237,16 @@ const EditQuestion = () => {
       {/* Answer list */}
       <Typography variant="h6" sx={{ mt: 3 }}>Answers</Typography>
       {answers.map((answer, index) => (
-        <Box key={index} sx={{ display: 'flex', alignItems: 'center', gap: 2, mt: 1 }}>
+        <Box
+          key={index}
+          sx={{
+            display: 'flex',
+            flexDirection: { xs: 'column', sm: 'row' },
+            alignItems: { xs: 'stretch', sm: 'center' },
+            gap: 2,
+            mt: 1
+          }}
+        >
           {/* Option input */}
           <TextField
             label={`Option ${index + 1}`}
@@ -270,7 +286,14 @@ const EditQuestion = () => {
 
       {/* Add/remove options (non-judgement only) */}
       {type !== 'judgement' && (
-        <Box sx={{ display: 'flex', gap: 2, mt: 2 }}>
+        <Box
+          sx={{
+            display: 'flex',
+            flexDirection: { xs: 'column', sm: 'row' },
+            gap: 2,
+            mt: 2
+          }}
+        >
           <Button
             variant="outlined"
             disabled={answers.length >= 6}
@@ -301,7 +324,14 @@ const EditQuestion = () => {
       )}
 
       {/* Save and Cancel actions */}
-      <Box sx={{ display: 'flex', gap: 2, mt: 4 }}>
+      <Box
+        sx={{
+          display: 'flex',
+          flexDirection: { xs: 'column', sm: 'row' },
+          gap: 2,
+          mt: 4
+        }}
+      >
         <Button
           variant="contained"
           onClick={() => {

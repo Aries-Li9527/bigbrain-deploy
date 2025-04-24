@@ -16,13 +16,15 @@ const style = {
   top: '50%',
   left: '50%',
   transform: 'translate(-50%, -50%)',
-  width: 400,
+  width: '90vw',       
+  maxWidth: 400,             
   bgcolor: 'background.paper',
   border: '1px solid #ccc',
   borderRadius: 2,
   boxShadow: 24,
   p: 4,
 };
+
 
 const Dashboard = () => {
   // -------------------------------
@@ -200,7 +202,8 @@ const Dashboard = () => {
       sx={{
         maxWidth: '1200px',
         mx: 'auto',
-        p: 3,
+        px: { xs: 2, sm: 3 },
+        py: { xs: 2, sm: 3 },
       }}
     >
       {/* Create Button Section */}
@@ -264,7 +267,7 @@ const Dashboard = () => {
                 id="upload-json"
                 type="file"
                 accept=".json"
-                style={{ display: 'none' }} 
+                style={{ display: 'none' }}
                 onChange={(e) => {
                   const file = e.target.files[0];
                   if (file) {

@@ -6,7 +6,15 @@ const AdvancedPointsExplanation = () => {
     // Center the explanation box on the page with margin on top
     <Box sx={{ display: 'flex', justifyContent: 'center', mt: 6 }}>
       {/* Card provides a nice container with shadow and padding */}
-      <Card sx={{ maxWidth: 800, width: '100%', p: 3 }}>
+      <Card
+        sx={{
+          maxWidth: 800,
+          width: '100%',
+          px: { xs: 2, sm: 3 },
+          py: { xs: 2, sm: 3 },
+          boxSizing: 'border-box',
+        }}
+      >
         <CardContent>
           {/* Title */}
           <Typography variant="h5" align="center" gutterBottom>

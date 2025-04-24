@@ -53,9 +53,24 @@ const CardShape = (props) => {
 
   return (
     // Card container with flex layout
-    <Box sx={{ display: 'flex', gap: '15px', flexWrap: 'wrap' }}>
+    <Box
+      sx={{
+        display: 'flex',
+        gap: 2,
+        flexWrap: 'wrap',
+        justifyContent: { xs: 'center', sm: 'flex-start' },
+      }}
+    >
+
       {games.map((game) => (
-        <Card key={game.id} sx={{ maxWidth: 345 }}>
+        <Card
+          key={game.id}
+          sx={{
+            width: { xs: '100%', sm: 300, md: 320 },
+            flexGrow: 1,
+          }}
+        >
+
           {/* Game thumbnail */}
           <CardMedia
             sx={{ height: 140 }}

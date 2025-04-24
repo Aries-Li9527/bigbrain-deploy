@@ -200,10 +200,10 @@ const EditGame = () => {
 
   //Component JSX layout
   return (
-    <Container maxWidth="lg">
+    <Container maxWidth="lg" sx={{ px: { xs: 2, sm: 3 }, py: { xs: 2, sm: 3 } }}>
       {/* Edit form section */}
       <Box sx={{ display: "flex", flexDirection: "column" }}>
-        <Typography variant="h2" gutterBottom>
+        <Typography variant="h5" gutterBottom>
           Edit your games :{game.name} here!
         </Typography>
 
@@ -270,7 +270,7 @@ const EditGame = () => {
           key={q.id}
           sx={{
             display: 'flex',
-            flexDirection: 'row',
+            flexDirection: { xs: 'column', sm: 'row' },
             justifyContent: 'space-between',
             alignItems: 'center',
             p: 3,
