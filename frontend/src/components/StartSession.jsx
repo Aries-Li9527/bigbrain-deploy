@@ -9,11 +9,16 @@ const StartSession = ({ gameId }) => {
   const [popupOpen, setPopupOpen] = useState(false);
   // State to store the created session ID
   const [sid, setSid] = useState(null);
+  // Loading state to prevent double click
+  const [loading, setLoading] = useState(false);
   // React Router navigation hook
   const navigate = useNavigate();
 
   // Function to start a game session
   const handleStart = async () => {
+    if (loading) return; // prevent double-click
+    setLoading(true); // set loading
+
     const token = localStorage.getItem(AUTH.TOKEN_KEY);
 
     const res = await fetch(`http://localhost:5005/admin/game/${gameId}/mutate`, {
@@ -26,8 +31,10 @@ const StartSession = ({ gameId }) => {
     });
 
     const data = await res.json();
-    if (res.ok) {
-      const sessionId = data.sessionId || data.data?.sessionId; // Fallback if structure varies
+    setLoading(false);
+
+    if (res.ok && (data.sessionId || data.data?.sessionId)) {
+      const sessionId = data.sessionId || data.data?.sessionId;
       setSid(sessionId);         // Store session ID
       setPopupOpen(true);        // Open popup
     } else {
@@ -38,7 +45,13 @@ const StartSession = ({ gameId }) => {
   return (
     <>
       {/* Button to trigger starting session */}
-      <Button size="small" onClick={handleStart}>Start Game</Button>
+      <Button
+        size="small"
+        onClick={handleStart}
+        disabled={loading}
+      >
+        {loading ? 'Starting...' : 'Start Game'}
+      </Button>
 
       {/* Popup that shows the session ID and options */}
       <SessionPopup

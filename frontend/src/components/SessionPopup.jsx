@@ -4,7 +4,8 @@ import {
   DialogContent,
   DialogActions,
   Button,
-  Typography
+  Typography,
+  Box
 } from '@mui/material';
 
 // SessionPopup component displays a dialog with session ID, join link, and options to copy or navigate
@@ -28,7 +29,12 @@ const SessionPopup = ({ open, sessionId, onClose }) => {
   };
 
   return (
-    <Dialog open={open} onClose={onClose}>
+    <Dialog
+      open={open}
+      onClose={onClose}
+      fullWidth
+      maxWidth="xs" // 小屏表现更好
+    >
       <DialogTitle>Session Started</DialogTitle>
       <DialogContent>
         <Typography gutterBottom>
@@ -36,16 +42,48 @@ const SessionPopup = ({ open, sessionId, onClose }) => {
         </Typography>
         <Typography gutterBottom>
           Join link: <br />
-          <span style={{ wordBreak: 'break-all' }}>{fullUrl}</span>
+          <Typography
+            component="span"
+            sx={{
+              wordBreak: 'break-word',
+              color: '#1976d2'
+            }}
+          >
+            {fullUrl}
+          </Typography>
+
         </Typography>
       </DialogContent>
-      <DialogActions>
+
+      <DialogActions
+        sx={{
+          flexDirection: { xs: 'column', sm: 'row' },
+          gap: 1,
+          px: 3,
+          pb: 2,
+          alignItems: { xs: 'stretch', sm: 'center' }
+        }}
+      >
         {/* Copy link button */}
-        <Button onClick={handleCopy}>Copy Link</Button>
+        <Button onClick={handleCopy} fullWidth={true}>Copy Link</Button>
+
         {/* Navigate to session page */}
-        <Button onClick={handleGo} variant="contained">Go to Session</Button>
+        <Button
+          onClick={handleGo}
+          variant="contained"
+          fullWidth={true}
+        >
+          Go to Session
+        </Button>
+
         {/* Close the popup and trigger redirection if needed */}
-        <Button onClick={() => onClose(true)}>Close</Button>
+        <Button
+          onClick={() => onClose(true)}
+          color="secondary"
+          fullWidth={true}
+        >
+          Close
+        </Button>
       </DialogActions>
     </Dialog>
   );

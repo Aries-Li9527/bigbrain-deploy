@@ -138,7 +138,7 @@ const SessionPage = () => {
 
 
   // Show loading spinner if no session data yet
-  if (!sessionData) return <Box sx={{ p: 4 }}><CircularProgress /></Box>;
+  if (!sessionData) return <Box sx={{ p: { xs: 2, sm: 4 } }}><CircularProgress /></Box>;
 
 
   // Get top 5 players sorted by score
@@ -149,16 +149,16 @@ const SessionPage = () => {
 
   // UI
   return (
-    <Box sx={{ p: 4 }}>
+    <Box sx={{ overflowX: 'auto' }}>
       {/* Header and session info */}
-      <Typography variant="h4" gutterBottom>Session Management</Typography>
+      <Typography variant="h4" gutterBottom textAlign={{ xs: 'center', sm: 'left' }}>Session Management</Typography>
       <Typography>Session ID: {session_id}</Typography>
       <Typography>Position: {sessionData.position}</Typography>
       <Typography>Status: {sessionData.active ? 'Active' : 'Ended'}</Typography>
       {!sessionData.active && (
         <>
           <Typography variant="h5" sx={{ mt: 4 }}>Top 5 Players</Typography>
-          <Table sx={{ mt: 2 }}>
+          <Table sx={{ mt: 2, minWidth: 300 }}>
             <TableHead>
               <TableRow>
                 <TableCell>Player</TableCell>
@@ -177,7 +177,7 @@ const SessionPage = () => {
           </Table>
 
           <Typography variant="h5" sx={{ mt: 6 }}>Correct Rate per Question (%)</Typography>
-          <Box sx={{ minHeight: 360, height: 400 }}>
+          <Box sx={{ minHeight: 360, height: 400, width: '100%', maxWidth: '100%' }}>
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={questions.map((qLabel, idx) => {
                 const total = players.length;
@@ -196,7 +196,7 @@ const SessionPage = () => {
           </Box>
 
           <Typography variant="h5" sx={{ mt: 6 }}>Average Answer Time (s)</Typography>
-          <Box sx={{ minHeight: 360, height: 400 }}>
+          <Box sx={{ minHeight: 360, height: 400, width: '100%', maxWidth: '100%' }}>
             <ResponsiveContainer width="100%" height="100%">
               <LineChart data={questions.map((qLabel, idx) => {
                 const total = players.length;
@@ -223,7 +223,7 @@ const SessionPage = () => {
 
       {/* Buttons to control the session, shown only if session is active */}
       {sessionData.active && (
-        <Box sx={{ mt: 3, display: 'flex', gap: 2 }}>
+        <Box sx={{ mt: 3, display: 'flex', gap: 2, flexDirection: { xs: 'column', sm: 'row' } }}>
           <Button variant="contained" onClick={advance}>Advance to Next Question</Button>
           <Button variant="outlined" color="error" onClick={stopGame}>Stop Game</Button>
         </Box>
