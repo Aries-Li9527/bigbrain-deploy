@@ -1,8 +1,9 @@
 import { useParams, useNavigate } from 'react-router-dom'; // Get URL params and navigation hook
 import { useEffect, useState } from 'react'; // React hooks for state and side effects
 import Lobby from './Lobby';
-// PlayScreen component: the main view for a player during the game
+import { Box, TextField, Button, Typography } from '@mui/material';
 
+// PlayScreen component: the main view for a player during the game
 const PlayScreen = () => {
   const { session_id } = useParams(); // Get session ID from the URL
   const [stage, setStage] = useState('loading'); // Current stage of the screen
@@ -27,6 +28,7 @@ const PlayScreen = () => {
     const data = await res.json();
     return data.active === false;
   };
+
   // Fetch player's current status in the game
   const fetchStatus = async () => {
     if (!playerId) return;
@@ -64,6 +66,7 @@ const PlayScreen = () => {
       setTimeout(fetchQuestion, 1000);
     }
   };
+
   // Fetch the current question data
   const fetchQuestion = async () => {
     if (!playerId || questionFetched) return;
@@ -87,6 +90,7 @@ const PlayScreen = () => {
     setTimeLeft(remaining > 0 ? remaining : 0);
     setStage('question');
   };
+
   // Submit selected answers to the backend
   const submitAnswer = async (answerIds) => {
     if (!playerId || !answerIds || answerIds.length === 0) return;
@@ -101,6 +105,7 @@ const PlayScreen = () => {
       console.warn('Submit error:', data);
     }
   };
+
   // Join the session using player name
   const joinSession = async () => {
     const res = await fetch(`http://localhost:5005/play/join/${session_id}`, {
@@ -117,6 +122,7 @@ const PlayScreen = () => {
       alert(data.error || 'Failed to join session');
     }
   };
+
   // On playerId change, start polling the game status
   useEffect(() => {
     if (!playerId) {
@@ -127,6 +133,7 @@ const PlayScreen = () => {
       return () => clearInterval(interval);
     }
   }, [playerId]);
+
   // Countdown for each question
   useEffect(() => {
     if (stage === 'question' && durationLeft !== null && durationLeft > 0) {
@@ -134,39 +141,54 @@ const PlayScreen = () => {
       return () => clearTimeout(t);
     }
   }, [durationLeft, stage]);
+
   // Render different UI based on stage
   if (stage === 'loading') return <p>Loading...</p>;
+
   if (stage === 'join') {
     return (
-      <div style={{ padding: 40 }}>
-        <h2>Join Game</h2>
-        <input
+      <Box sx={{ p: { xs: 2, sm: 5 }, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
+        <Typography variant="h5">Join Game</Typography>
+        <TextField
+          fullWidth
           placeholder="Enter your name"
           value={playerName}
           onChange={(e) => setPlayerName(e.target.value)}
+          sx={{ maxWidth: 400 }}
         />
-        <button onClick={joinSession}>Join</button>
-      </div>
+        <Button variant="contained" onClick={joinSession}>Join</Button>
+      </Box>
     );
   }
+
   if (stage === 'waiting') {
     return <Lobby />;
   }
+
   if (stage === 'question') {
     if (!question || !question.question || !Array.isArray(question.optionAnswers)) {
       return <p>Waiting for question data...</p>;
     }
     return (
-      <div style={{ padding: 40 }}>
-        <h2>{question.question}</h2>
-        <p>Current Question: Q{position + 1}</p>
-        {question.image && <img src={question.image} alt="question" style={{ maxWidth: '100%' }} />}
-        {question.video && <video src={question.video} controls style={{ maxWidth: '100%' }} />}
-        <p>Duration left: {durationLeft}s</p>
-        <div>
+      <Box sx={{ p: { xs: 2, sm: 5 } }}>
+        <Typography variant="h5" gutterBottom>{question.question}</Typography>
+        <Typography variant="subtitle1">Current Question: Q{position + 1}</Typography>
+
+        {question.image && (
+          <Box component="img" src={question.image} alt="question" sx={{ width: '100%', maxWidth: 600, borderRadius: 2, my: 2 }} />
+        )}
+
+        {question.video && (
+          <Box component="video" src={question.video} controls sx={{ width: '100%', maxWidth: 600, borderRadius: 2, my: 2 }} />
+        )}
+
+        <Typography sx={{ my: 2 }}>Duration left: {durationLeft}s</Typography>
+
+        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
           {question.optionAnswers.map((ans, idx) => (
-            <button
+            <Button
               key={ans.text}
+              variant={selected.includes(idx) ? 'contained' : 'outlined'}
               onClick={() => {
                 const value = idx;
                 const newSelected = question.type === 'multiple'
@@ -178,19 +200,16 @@ const PlayScreen = () => {
                 setSelected(newSelected);
                 submitAnswer(newSelected.map(i => question.optionAnswers[i].text));
               }}
-              style={{
-                background: selected.includes(idx) ? '#90ee90' : '',
-                margin: '5px',
-                padding: '10px',
-              }}
+              sx={{ minWidth: 150, maxWidth: '100%' }}
             >
               {ans.text}
-            </button>
+            </Button>
           ))}
-        </div>
-      </div>
+        </Box>
+      </Box>
     );
   }
+
   return null;
 };
 

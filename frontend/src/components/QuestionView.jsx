@@ -71,21 +71,31 @@ const QuestionView = () => {
 
   // Main view: Display question details
   return (
-    <Box sx={{ p: 4 }}>
+    <Box sx={{ p: { xs: 2, sm: 4 }, maxWidth: 600, mx: 'auto' }}>
       <Typography variant="h4" gutterBottom>Question Detail</Typography>
 
       {/* Basic question metadata */}
-      <Typography><strong>Text:</strong> {question.text}</Typography>
-      <Typography><strong>Type:</strong> {question.type}</Typography>
+      <Typography sx={{ wordBreak: 'break-word' }}><strong>Text:</strong> {question.text}</Typography>
+      <Typography sx={{ wordBreak: 'break-word' }}><strong>Type:</strong> {question.type}</Typography>
       <Typography><strong>Time:</strong> {question.duration} seconds</Typography>
       <Typography><strong>Points:</strong> {question.points}</Typography>
-      <Typography><strong>YouTube:</strong> {question.video || 'N/A'}</Typography>
+      <Typography sx={{ wordBreak: 'break-word' }}><strong>YouTube:</strong> {question.video || 'N/A'}</Typography>
 
       {/* Show image if provided */}
       {question.image && (
         <Box mt={2}>
           <Typography><strong>Image:</strong></Typography>
-          <img src={question.image} alt="Question" style={{ height: 100, marginTop: 8 }} />
+          <Box
+            component="img"
+            src={question.image}
+            alt="Question"
+            sx={{
+              height: 100,
+              marginTop: 2, 
+              maxWidth: '100%',
+            }}
+          />
+
         </Box>
       )}
 
@@ -93,18 +103,18 @@ const QuestionView = () => {
       <Box mt={2}>
         <Typography><strong>Answers:</strong></Typography>
         {question.answers?.map((ans, i) => (
-          <Typography key={i}>
+          <Typography key={i} sx={{ wordBreak: 'break-word' }}>
             - {ans.text} {ans.correct ? '(✓ correct)' : ''}
           </Typography>
         ))}
       </Box>
 
       {/* Action buttons: Edit or return to game */}
-      <Box mt={4}>
-        <Button variant="contained" onClick={() => navigate(`/game/${gameId}/question/${index}`)}>
+      <Box mt={4} sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, gap: 2 }}>
+        <Button fullWidth variant="contained" onClick={() => navigate(`/game/${gameId}/question/${index}`)}>
           Edit Question
         </Button>
-        <Button variant="outlined" sx={{ ml: 2 }} onClick={() => navigate(`/game/${gameId}`)}>
+        <Button fullWidth variant="outlined" onClick={() => navigate(`/game/${gameId}`)}>
           Back to Game
         </Button>
       </Box>

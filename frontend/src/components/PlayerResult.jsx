@@ -100,7 +100,7 @@ const PlayerResult = () => {
   // Render an error message if data failed to load
   if (results === null) {
     return (
-      <Box sx={{ p: 4 }}>
+      <Box sx={{ p: { xs: 2, sm: 4 }, maxWidth: '100%', overflowX: 'auto' }}>
         <Typography variant="h6" color="error">
           Failed to load player results. Please try again later.
         </Typography>
@@ -109,9 +109,9 @@ const PlayerResult = () => {
   }
 
   return (
-    <Box sx={{ p: 4 }}>
+    <Box sx={{ p: { xs: 2, sm: 4 }, maxWidth: '100%', overflowX: 'auto' }}>
       <Typography variant="h4" gutterBottom>Quiz Results</Typography>
-      <Table>
+      <Table sx={{ minWidth: 600 }}>
         <TableHead>
           <TableRow>
             <TableCell>Question</TableCell>
@@ -147,11 +147,11 @@ const PlayerResult = () => {
       </Table>
 
       {/* Total score display */}
-      <Typography variant="h5" sx={{ mt: 4 }}>
+      <Typography variant="h5" sx={{ mt: 4, textAlign: { xs: 'center', sm: 'left' } }}>
         Total Score: {totalScore} / {maxScore}
       </Typography>
 
-      <Typography variant="h6" sx={{ mt: 2 }}>
+      <Typography variant="h6" sx={{ mt: 2, textAlign: { xs: 'center', sm: 'left' } }}>
         Advanced Score (Speed × Points): {advancedScore.toFixed(2)}
       </Typography>
 

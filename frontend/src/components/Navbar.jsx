@@ -28,11 +28,19 @@ const Navbar = (props) => {
             edge="start"
             color="inherit"
             aria-label="menu"
-            sx={{ mr: 3 }}
+            sx={{ mr: { xs: 1, sm: 3 } }}
           />
 
           {/* App Title */}
-          <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
+          <Typography
+            variant="h6"
+            component="div"
+            sx={{
+              flexGrow: 1,
+              fontSize: { xs: '1.2rem', sm: '1.5rem' },
+              textAlign: 'left'
+            }}
+          >
             Bigbrain
           </Typography>
 

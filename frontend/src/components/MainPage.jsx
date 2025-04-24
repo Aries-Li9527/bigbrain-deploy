@@ -13,15 +13,28 @@ const MainPage = (props) => {
           justifyContent: "center",
           alignItems: "center",
           textAlign: "center",
-          mt: 8,
+          mt: { xs: 4, sm: 8 }, 
+          px: 2,               
         }}
       >
-        <Typography variant="h3" gutterBottom>
+        <Typography
+          variant="h4"
+          sx={{ fontSize: { xs: '1.8rem', sm: '2.2rem', md: '2.5rem' } }}
+          gutterBottom
+        >
           Welcome to Big Brain
         </Typography>
 
-        <Typography variant="h5" color="text.secondary">
-          {props.token === null 
+        <Typography
+          variant="body1"
+          color="text.secondary"
+          sx={{
+            fontSize: { xs: '1rem', sm: '1.2rem' },
+            maxWidth: 500,
+            mt: 2,
+          }}
+        >
+          {props.token === null
             ? <>
               Please click the login button to log in. <br />
               New here? Feel free to register an account and join us!

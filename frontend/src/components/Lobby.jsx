@@ -25,13 +25,19 @@ const Lobby = () => {
   }, []);
 
   return (
-    <Box sx={{
-      p: 6,                         // Padding
-      display: 'flex',             // Flexbox layout
-      flexDirection: 'column',     // Stack children vertically
-      alignItems: 'center',        // Center children horizontally
-      gap: 3,                       // Space between children
-    }}>
+    <Box
+      sx={{
+        px: { xs: 2, sm: 6 },       
+        py: { xs: 4, sm: 6 },
+        minHeight: '100vh',            
+        display: 'flex',
+        flexDirection: 'column',
+        justifyContent: 'center',      
+        alignItems: 'center',
+        gap: { xs: 2, sm: 3 },         
+        textAlign: 'center'           
+      }}
+    >
       {/* Display a celebration icon to add visual excitement */}
       <CelebrationIcon sx={{ fontSize: 60, color: '#ff9800' }} />
 
