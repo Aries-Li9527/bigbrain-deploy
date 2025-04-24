@@ -9,6 +9,8 @@ import EditGame from './components/EditGame';
 import EditQuestion from './components/EditQuestion'
 import SessionPage from './components/SessionPage';
 import PlayScreen from './components/PlayScreen';
+import PlayerResult from './components/PlayerResult';
+
 
 function App() {
   const [token, setToken] = useState(localStorage.getItem('token'));
@@ -27,6 +29,8 @@ function App() {
         <Route path="/game/:game_id/question/:question_id" element={<EditQuestion setToken={setToken}/>} />
         <Route path="/session/:session_id" element={<SessionPage />} />
         <Route path="/play/:session_id" element={<PlayScreen />} />
+        <Route path="/result/:session_id/:player_id" element={<PlayerResult />} />
+        
       </Routes>
     </BrowserRouter>
   );
