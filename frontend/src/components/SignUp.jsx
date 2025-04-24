@@ -16,8 +16,9 @@ const SignUp = (props) => {
   const [password, setPassword] = useState('');
   const [name, setName] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  const [error, setError] = useState('')
+  const [error, setError] = useState('');
   const [open, setOpen] = useState(false);
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
   // Register function to handle registration request
@@ -27,8 +28,11 @@ const SignUp = (props) => {
     if (!email || !email.includes('@')) return handleError('Please enter a valid email.');
     if (!password) return handleError('Please enter your password.');
     if (password !== confirmPassword) return handleError('Passwords do not match.');
+
+    setLoading(true);
+
     // Send POST request to backend for registration
-    const url = 'http://localhost:5005/admin/auth/register'
+    const url = 'http://localhost:5005/admin/auth/register';
     const res = await fetch(url, {
       method: 'post',
       headers: {
@@ -39,11 +43,14 @@ const SignUp = (props) => {
         password,
         name
       }),
-    })
-    const data = await res.json()
+    });
+
+    const data = await res.json();
+    setLoading(false);
+
     // If success, store token & navigate
     if (data.token) {
-      props.setToken(data.token)
+      props.setToken(data.token);
       // Save token to localStorage for future auth
       localStorage.setItem(AUTH.TOKEN_KEY, data.token);
       localStorage.setItem(AUTH.USER_KEY, email);
@@ -51,7 +58,7 @@ const SignUp = (props) => {
     } else {
       handleError(data.error || "Register failed");
     }
-  }
+  };
 
   // Handle error: set error message and open the Snackbar
   const handleError = (message) => {
@@ -66,7 +73,7 @@ const SignUp = (props) => {
   };
 
   return (
-    <Container maxWidth="lg">
+    <Container maxWidth="sm">
       {/* Snackbar component for displaying error messages */}
       <Snackbar
         open={open}
@@ -99,59 +106,62 @@ const SignUp = (props) => {
           e.preventDefault();
           register();
         }}
-        sx={{ display: "flex", flexDirection: "column" }}
+        sx={{ display: "flex", flexDirection: "column", gap: 3, mt: 6 }}
       >
-        <Typography variant="h1" gutterBottom>
-          Register form
+        <Typography variant="h3" gutterBottom>
+          Register
         </Typography>
 
         {/* Name input */}
         <TextField
           required
           id="name-input"
-          label="name"
+          label="Name"
+          autoComplete="name"
           onChange={(e) => setName(e.target.value)}
         />
-        <br>
-        </br>
 
         {/* Email input */}
         <TextField
           required
           id="email-input"
-          label="email"
+          label="Email"
+          type="email"
+          autoComplete="email"
           onChange={(e) => setEmail(e.target.value)}
         />
-        <br>
-        </br>
 
         {/* Password input */}
         <TextField
           required
           type="password"
           id="password-input"
-          label="password"
+          label="Password"
+          autoComplete="new-password"
           onChange={(e) => setPassword(e.target.value)}
         />
-        <br>
-        </br>
 
-        {/* confirm password input */}
+        {/* Confirm password input */}
         <TextField
           required
           type="password"
           id="confirm-password-input"
-          label="confirm password"
+          label="Confirm Password"
+          autoComplete="new-password"
           onChange={(e) => setConfirmPassword(e.target.value)}
         />
-        <br>
-        </br>
 
         {/* Submit button */}
-        <Button variant="contained" type="submit">submit</Button>
+        <Button
+          variant="contained"
+          type="submit"
+          disabled={loading}
+        >
+          {loading ? 'Registering...' : 'Submit'}
+        </Button>
       </Box>
     </Container>
-  )
-}
+  );
+};
 
 export default SignUp;

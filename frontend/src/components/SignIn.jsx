@@ -15,10 +15,17 @@ const SignIn = (props) => {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [open, setOpen] = useState(false);
+  const [loading, setLoading] = useState(false); // ✅ 增加 loading 状态
   const navigate = useNavigate();
 
   // Login handler
   const login = async () => {
+    if (!email || !password) {
+      handleError('Please enter both email and password.');
+      return;
+    }
+
+    setLoading(true);
     try {
       const url = 'http://localhost:5005/admin/auth/login';
       const res = await fetch(url, {
@@ -30,21 +37,20 @@ const SignIn = (props) => {
       });
 
       const data = await res.json();
+      setLoading(false);
 
-      if (!res.ok) {
+      if (!res.ok || !data.token) {
         handleError(data.error || 'Login failed.');
         return;
       }
 
-      if (data.token) {
-        props?.setToken?.(data.token);
-        localStorage.setItem(AUTH.TOKEN_KEY, data.token);
-        localStorage.setItem(AUTH.USER_KEY, email);
-        navigate('/dashboard');
-      } else {
-        handleError(data.error || 'Login failed.');
-      }
+      props?.setToken?.(data.token);
+      localStorage.setItem(AUTH.TOKEN_KEY, data.token);
+      localStorage.setItem(AUTH.USER_KEY, email);
+      navigate('/dashboard');
+
     } catch (_) {
+      setLoading(false);
       handleError('Network error. Please check your connection.');
     }
   };
@@ -94,9 +100,9 @@ const SignIn = (props) => {
           e.preventDefault();
           login();
         }}
-        sx={{ display: "flex", flexDirection: "column" }}
+        sx={{ display: "flex", flexDirection: "column", gap: 2 }}
       >
-        <Typography variant="h1" gutterBottom>
+        <Typography variant="h3" gutterBottom>
           Sign In
         </Typography>
 
@@ -105,9 +111,12 @@ const SignIn = (props) => {
           required
           id="email-input"
           label="Email"
+          type="email"
+          autoComplete="email"
+          aria-label="email"
+          value={email}
           onChange={(e) => setEmail(e.target.value)}
         />
-        <br />
 
         {/* Password input */}
         <TextField
@@ -115,13 +124,19 @@ const SignIn = (props) => {
           id="password-input"
           label="Password"
           type="password"
+          autoComplete="current-password"
+          aria-label="password"
+          value={password}
           onChange={(e) => setPassword(e.target.value)}
         />
-        <br />
 
         {/* Submit button */}
-        <Button variant="contained" type="submit">
-          Submit
+        <Button
+          variant="contained"
+          type="submit"
+          disabled={loading}
+        >
+          {loading ? 'Loading...' : 'Submit'}
         </Button>
       </Box>
     </Container>
