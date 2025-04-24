@@ -106,7 +106,7 @@ const EditQuestion = () => {
     <Container maxWidth="md" sx={{ mt: 4 }}>
       {/* Page title */}
       <Typography variant="h4" gutterBottom>Edit Question</Typography>
-  
+
       {/* Question detail input */}
       <TextField
         label="Question details"
@@ -115,7 +115,7 @@ const EditQuestion = () => {
         value={questionData.question}
         onChange={(e) => setQuestionData({ ...questionData, question: e.target.value })}
       />
-  
+
       {/* Question type dropdown */}
       <FormControl fullWidth sx={{ mb: 2 }}>
         <InputLabel>Question Type</InputLabel>
@@ -125,7 +125,7 @@ const EditQuestion = () => {
           onChange={(e) => {
             const newType = e.target.value;
             setType(newType);
-  
+
             // Judgement has fixed two options
             if (newType === 'judgement') {
               setAnswers([
@@ -146,7 +146,7 @@ const EditQuestion = () => {
           <MenuItem value="judgement">Judgement</MenuItem>
         </Select>
       </FormControl>
-  
+
       {/* Duration in minutes */}
       <TextField
         label="Duration Limit (minutes)"
@@ -162,7 +162,7 @@ const EditQuestion = () => {
           })
         }
       />
-  
+
       {/* Point value */}
       <TextField
         label="Points"
@@ -175,7 +175,7 @@ const EditQuestion = () => {
           setQuestionData({ ...questionData, point: parseInt(e.target.value) || 0 })
         }
       />
-  
+
       {/* Optional YouTube video */}
       <TextField
         label="YouTube Video URL (optional)"
@@ -186,7 +186,7 @@ const EditQuestion = () => {
           setQuestionData({ ...questionData, video: e.target.value })
         }
       />
-  
+
       {/* Optional image URL */}
       <TextField
         label="Image URL (optional)"
@@ -197,7 +197,7 @@ const EditQuestion = () => {
           setQuestionData({ ...questionData, image: e.target.value })
         }
       />
-  
+
       {/* Answer list */}
       <Typography variant="h6" sx={{ mt: 3 }}>Answers</Typography>
       {answers.map((answer, index) => (
@@ -213,7 +213,7 @@ const EditQuestion = () => {
               setAnswers(newAnswers);
             }}
           />
-  
+
           {/* Correct answer checkbox */}
           <FormControlLabel
             control={
@@ -238,7 +238,7 @@ const EditQuestion = () => {
           />
         </Box>
       ))}
-  
+
       {/* Add/remove options (non-judgement only) */}
       {type !== 'judgement' && (
         <Box sx={{ display: 'flex', gap: 2, mt: 2 }}>
@@ -253,7 +253,7 @@ const EditQuestion = () => {
           >
             Add Answer
           </Button>
-  
+
           <Button
             variant="outlined"
             color="error"
@@ -270,7 +270,7 @@ const EditQuestion = () => {
           </Button>
         </Box>
       )}
-  
+
       {/* Save and Cancel actions */}
       <Box sx={{ display: 'flex', gap: 2, mt: 4 }}>
         <Button
@@ -282,26 +282,26 @@ const EditQuestion = () => {
               const allGames = data.games || [];
               const targetGame = allGames.find(g => String(g.id) === game_id);
               if (!targetGame) return;
-  
+
               // Update the current question
               const updatedQuestions = targetGame.questions.map((q) =>
                 String(q.id) === question_id
                   ? {
-                      ...questionData,
-                      type,
-                      optionAnswers: answers,
-                      correctAnswers: answers.filter(ans => ans.correct).map(ans => ans.text)
-                    }
+                    ...questionData,
+                    type,
+                    optionAnswers: answers,
+                    correctAnswers: answers.filter(ans => ans.correct).map(ans => ans.text)
+                  }
                   : q
               );
-  
+
               // Update game object
               const updatedGame = { ...targetGame, questions: updatedQuestions };
-  
+
               const updatedGames = allGames.map((g) =>
                 String(g.id) === game_id ? updatedGame : g
               );
-  
+
               // Send PUT request to save
               return fetch('http://localhost:5005/admin/games', {
                 method: 'PUT',
@@ -323,7 +323,7 @@ const EditQuestion = () => {
         >
           Save Question
         </Button>
-  
+
         <Button
           variant="outlined"
           color="secondary"
