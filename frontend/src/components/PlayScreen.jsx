@@ -162,6 +162,7 @@ const PlayScreen = () => {
     return (
       <div style={{ padding: 40 }}>
         <h2>{question.question}</h2>
+        <p>Current Question: Q{position + 1}</p>
         {question.image && <img src={question.image} alt="question" style={{ maxWidth: '100%' }} />}
         {question.video && <video src={question.video} controls style={{ maxWidth: '100%' }} />}
         <p>Duration left: {durationLeft}s</p>
