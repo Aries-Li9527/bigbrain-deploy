@@ -4,7 +4,7 @@ import Button from '@mui/material/Button';
 import Typography from '@mui/material/Typography';
 import Modal from '@mui/material/Modal';
 import TextField from '@mui/material/TextField';
-import { fetchAllGames } from '../DataProvider';
+import { fetchAllGames } from '../DataProvider.jsx';
 import AUTH from '../Constant';
 import CardShape from './Card';
 
