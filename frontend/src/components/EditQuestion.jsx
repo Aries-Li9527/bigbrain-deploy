@@ -8,7 +8,7 @@ import {
   Container, Typography, TextField, Box, Button,
   MenuItem, Select, InputLabel, FormControl, Checkbox, FormControlLabel, Menu
 } from '@mui/material';
-import { fetchAllGames } from '../DataProvider';
+import { fetchAllGames } from '../DataProvider.jsx';
 import AUTH from '../Constant';
 
 
