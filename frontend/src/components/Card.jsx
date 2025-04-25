@@ -73,9 +73,16 @@ const CardShape = (props) => {
 
           {/* Game thumbnail */}
           <CardMedia
-            sx={{ height: 140 }}
+            component="img"
             image={game.thumbnail || "https://picsum.photos/300/180?random=10"}
             alt="Game picture"
+            sx={{
+              height: 180,   
+              width: '100%',    
+              objectFit: 'cover', 
+              borderTopLeftRadius: 4,
+              borderTopRightRadius: 4,
+            }}
           />
 
           {/* Game title and subtitle */}
