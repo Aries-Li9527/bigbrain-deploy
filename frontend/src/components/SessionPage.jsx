@@ -160,7 +160,7 @@ const SessionPage = () => {
       >
         Back to Dashboard
       </Button>
-      
+
     </Box><Box sx={{ overflowX: 'auto' }}>
         {/* Header and session info */}
         <Typography variant="h4" gutterBottom textAlign={{ xs: 'center', sm: 'left' }}>Session Management</Typography>
