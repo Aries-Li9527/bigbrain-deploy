@@ -4,7 +4,7 @@ import Button from '@mui/material/Button';
 import Typography from '@mui/material/Typography';
 import Modal from '@mui/material/Modal';
 import TextField from '@mui/material/TextField';
-import { fetchAllGames } from '../DataProvider.jsx';
+import { fetchAllGames } from '../DataProvider';
 import AUTH from '../Constant';
 import CardShape from './Card';
 
@@ -16,8 +16,8 @@ const style = {
   top: '50%',
   left: '50%',
   transform: 'translate(-50%, -50%)',
-  width: '90vw',       
-  maxWidth: 400,             
+  width: '90vw',
+  maxWidth: 400,
   bgcolor: 'background.paper',
   border: '1px solid #ccc',
   borderRadius: 2,
@@ -243,7 +243,7 @@ const Dashboard = () => {
             id="game-title-input"
             label="Enter game title"
             value={title}
-            disabled={isUploadLocked} 
+            disabled={isUploadLocked}
             onChange={(e) => {
               setTitle(e.target.value);
               setUserTypedTitle(true);

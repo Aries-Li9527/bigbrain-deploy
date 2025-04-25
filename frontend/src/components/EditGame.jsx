@@ -10,7 +10,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 
 import AUTH from '../Constant';
 import { fetchAllGames } from '../DataProvider.jsx';
- // Function to fetch all games
+// Function to fetch all games
 
 // --------------------------
 // Modal style for popup
