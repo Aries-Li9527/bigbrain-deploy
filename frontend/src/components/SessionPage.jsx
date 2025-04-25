@@ -153,20 +153,25 @@ const SessionPage = () => {
 
   // UI
   return (
-    <><Box sx={{ mt: 4 }}>
-      <Button
-        variant="outlined"
-        onClick={() => navigate('/dashboard')}
-      >
-        Back to Dashboard
-      </Button>
+    <>
+      <Box sx={{ mt: 4 }}>
+        <Button
+          variant="outlined"
+          onClick={() => navigate('/dashboard')}
+        >
+          Back to Dashboard
+        </Button>
+      </Box>
 
-    </Box><Box sx={{ overflowX: 'auto' }}>
+      <Box sx={{ overflowX: 'auto' }}>
         {/* Header and session info */}
-        <Typography variant="h4" gutterBottom textAlign={{ xs: 'center', sm: 'left' }}>Session Management</Typography>
+        <Typography variant="h4" gutterBottom textAlign={{ xs: 'center', sm: 'left' }}>
+          Session Management
+        </Typography>
         <Typography>Session ID: {session_id}</Typography>
         <Typography>Position: {sessionData.position}</Typography>
         <Typography>Status: {sessionData.active ? 'Active' : 'Ended'}</Typography>
+
         {!sessionData.active && (
           <>
             <Typography variant="h5" sx={{ mt: 4 }}>Top 5 Players</Typography>
@@ -184,7 +189,6 @@ const SessionPage = () => {
                     <TableCell>{player.score}</TableCell>
                   </TableRow>
                 ))}
-
               </TableBody>
             </Table>
 
@@ -244,9 +248,10 @@ const SessionPage = () => {
         <Box sx={{ mt: 6 }}>
           <AdvancedPointsExplanation />
         </Box>
-
-      </Box></>
+      </Box>
+    </>
   );
+
 };
 
 export default SessionPage;
