@@ -77,12 +77,13 @@ const SessionPopup = ({ open, sessionId, onClose }) => {
 
         {/* Close the popup and trigger redirection if needed */}
         <Button
-          onClick={() => onClose(true)}
+          onClick={() => onClose('dashboard')}
           color="secondary"
           fullWidth={true}
         >
           Close
         </Button>
+
       </DialogActions>
     </Dialog>
   );

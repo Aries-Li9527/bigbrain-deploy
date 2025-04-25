@@ -45,7 +45,6 @@ function App () {
         <Route path='/play/:session_id' element={<PlayScreen />} />
         <Route path='/result/:session_id/:player_id' element={<PlayerResult />} />
         <Route path='/session/:session_id/results' element={<SessionResult />} />
-
         {/* Informational page */}
         <Route path='/points-explanation' element={<AdvancedPointsExplanation />} />
       </Routes>

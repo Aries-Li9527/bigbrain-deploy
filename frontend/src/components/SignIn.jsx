@@ -15,15 +15,11 @@ const SignIn = (props) => {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [open, setOpen] = useState(false);
-  const [loading, setLoading] = useState(false); // ✅ 增加 loading 状态
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
   // Login handler
   const login = async () => {
-    if (!email || !password) {
-      handleError('Please enter both email and password.');
-      return;
-    }
 
     setLoading(true);
     try {

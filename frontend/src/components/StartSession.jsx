@@ -4,20 +4,15 @@ import SessionPopup from './SessionPopup'; // Component for showing session info
 import AUTH from '../Constant';
 import { useNavigate } from 'react-router-dom';
 
-const StartSession = ({ gameId }) => {
-  // State to control popup visibility
+const StartSession = ({ gameId, refresh }) => { 
   const [popupOpen, setPopupOpen] = useState(false);
-  // State to store the created session ID
   const [sid, setSid] = useState(null);
-  // Loading state to prevent double click
   const [loading, setLoading] = useState(false);
-  // React Router navigation hook
   const navigate = useNavigate();
 
-  // Function to start a game session
   const handleStart = async () => {
-    if (loading) return; // prevent double-click
-    setLoading(true); // set loading
+    if (loading) return;
+    setLoading(true);
 
     const token = localStorage.getItem(AUTH.TOKEN_KEY);
 
@@ -27,7 +22,7 @@ const StartSession = ({ gameId }) => {
         'Content-Type': 'application/json',
         Authorization: `Bearer ${token}`
       },
-      body: JSON.stringify({ mutationType: 'start' }) // Tell backend to start a session
+      body: JSON.stringify({ mutationType: 'start' })
     });
 
     const data = await res.json();
@@ -35,16 +30,15 @@ const StartSession = ({ gameId }) => {
 
     if (res.ok && (data.sessionId || data.data?.sessionId)) {
       const sessionId = data.sessionId || data.data?.sessionId;
-      setSid(sessionId);         // Store session ID
-      setPopupOpen(true);        // Open popup
+      setSid(sessionId);
+      setPopupOpen(true);
     } else {
-      alert(data.error || 'Failed to start session'); // Handle error
+      alert(data.error || 'Failed to start session');
     }
   };
 
   return (
     <>
-      {/* Button to trigger starting session */}
       <Button
         size="small"
         onClick={handleStart}
@@ -53,14 +47,17 @@ const StartSession = ({ gameId }) => {
         {loading ? 'Starting...' : 'Start Game'}
       </Button>
 
-      {/* Popup that shows the session ID and options */}
       <SessionPopup
         open={popupOpen}
         sessionId={sid}
-        onClose={(redirect = true) => {
-          setPopupOpen(false);                // Close the popup
-          if (redirect && sid) {
-            navigate(`/session/${sid}`);      // Navigate to the session page if allowed
+        gameId={gameId}
+        onClose={(action) => {
+          setPopupOpen(false);
+          refresh?.(); 
+          if (action === 'dashboard') {
+            navigate('/dashboard');
+          } else if (sid) {
+            navigate(`/session/${sid}`);
           }
         }}
       />
