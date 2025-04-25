@@ -243,7 +243,7 @@ const Dashboard = () => {
             id="game-title-input"
             label="Enter game title"
             value={title}
-            disabled={isUploadLocked} // 👈 只有上传 JSON 并自动填标题时才禁用
+            disabled={isUploadLocked} 
             onChange={(e) => {
               setTitle(e.target.value);
               setUserTypedTitle(true);

@@ -1,4 +1,3 @@
-// MainPage 组件：根据是否登录展示欢迎信息
 // MainPage component: displays welcome text if user is logged in
 import { Box, Typography, Container } from "@mui/material";
 

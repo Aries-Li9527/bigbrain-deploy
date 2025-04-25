@@ -32,7 +32,7 @@ const SessionPopup = ({ open, sessionId, onClose }) => {
       open={open}
       onClose={onClose}
       fullWidth
-      maxWidth="xs" // 小屏表现更好
+      maxWidth="xs" 
     >
       <DialogTitle>Session Started</DialogTitle>
       <DialogContent>
