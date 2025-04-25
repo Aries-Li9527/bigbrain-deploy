@@ -9,6 +9,7 @@ import {
   ResponsiveContainer, BarChart, Bar, LineChart, Line, XAxis, YAxis, Tooltip
 } from 'recharts';
 import AdvancedPointsExplanation from './AdvancedPointsExplanation';
+import { useNavigate } from 'react-router-dom';
 
 const SessionPage = () => {
   const { session_id } = useParams(); // Get session ID from URL
@@ -16,6 +17,7 @@ const SessionPage = () => {
   const [players, setPlayers] = useState([]); // List of players
   const [questions, setQuestions] = useState([]); // List of question labels 
   const [gameId, setGameId] = useState(null); // Game ID tied to the session
+  const navigate = useNavigate();
 
 
   // Fetch current session status
@@ -117,6 +119,8 @@ const SessionPage = () => {
       alert(data.error || 'Failed to stop session');
       return;
     }
+
+    navigate('/dashboard');
   };
 
 
@@ -149,91 +153,99 @@ const SessionPage = () => {
 
   // UI
   return (
-    <Box sx={{ overflowX: 'auto' }}>
-      {/* Header and session info */}
-      <Typography variant="h4" gutterBottom textAlign={{ xs: 'center', sm: 'left' }}>Session Management</Typography>
-      <Typography>Session ID: {session_id}</Typography>
-      <Typography>Position: {sessionData.position}</Typography>
-      <Typography>Status: {sessionData.active ? 'Active' : 'Ended'}</Typography>
-      {!sessionData.active && (
-        <>
-          <Typography variant="h5" sx={{ mt: 4 }}>Top 5 Players</Typography>
-          <Table sx={{ mt: 2, minWidth: 300 }}>
-            <TableHead>
-              <TableRow>
-                <TableCell>Player</TableCell>
-                <TableCell>Score</TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {topPlayers.map((player, idx) => (
-                <TableRow key={idx}>
-                  <TableCell>{player.name}</TableCell>
-                  <TableCell>{player.score}</TableCell>
+    <><Box sx={{ mt: 4 }}>
+      <Button
+        variant="outlined"
+        onClick={() => navigate('/dashboard')}
+      >
+        Back to Dashboard
+      </Button>
+      
+    </Box><Box sx={{ overflowX: 'auto' }}>
+        {/* Header and session info */}
+        <Typography variant="h4" gutterBottom textAlign={{ xs: 'center', sm: 'left' }}>Session Management</Typography>
+        <Typography>Session ID: {session_id}</Typography>
+        <Typography>Position: {sessionData.position}</Typography>
+        <Typography>Status: {sessionData.active ? 'Active' : 'Ended'}</Typography>
+        {!sessionData.active && (
+          <>
+            <Typography variant="h5" sx={{ mt: 4 }}>Top 5 Players</Typography>
+            <Table sx={{ mt: 2, minWidth: 300 }}>
+              <TableHead>
+                <TableRow>
+                  <TableCell>Player</TableCell>
+                  <TableCell>Score</TableCell>
                 </TableRow>
-              ))}
+              </TableHead>
+              <TableBody>
+                {topPlayers.map((player, idx) => (
+                  <TableRow key={idx}>
+                    <TableCell>{player.name}</TableCell>
+                    <TableCell>{player.score}</TableCell>
+                  </TableRow>
+                ))}
 
-            </TableBody>
-          </Table>
+              </TableBody>
+            </Table>
 
-          <Typography variant="h5" sx={{ mt: 6 }}>Correct Rate per Question (%)</Typography>
-          <Box sx={{ minHeight: 360, height: 400, width: '100%', maxWidth: '100%' }}>
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={questions.map((qLabel, idx) => {
-                const total = players.length;
-                const correctCount = players.filter(p => p.answers?.[idx]?.correct).length;
-                return {
-                  name: qLabel,
-                  correctRate: total ? Math.round((correctCount / total) * 100) : 0
-                };
-              })}>
-                <XAxis dataKey="name" />
-                <YAxis domain={[0, 100]} />
-                <Tooltip />
-                <Bar dataKey="correctRate" fill="#82ca9d" radius={[4, 4, 0, 0]} />
-              </BarChart>
-            </ResponsiveContainer>
+            <Typography variant="h5" sx={{ mt: 6 }}>Correct Rate per Question (%)</Typography>
+            <Box sx={{ minHeight: 360, height: 400, width: '100%', maxWidth: '100%' }}>
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={questions.map((qLabel, idx) => {
+                  const total = players.length;
+                  const correctCount = players.filter(p => p.answers?.[idx]?.correct).length;
+                  return {
+                    name: qLabel,
+                    correctRate: total ? Math.round((correctCount / total) * 100) : 0
+                  };
+                })}>
+                  <XAxis dataKey="name" />
+                  <YAxis domain={[0, 100]} />
+                  <Tooltip />
+                  <Bar dataKey="correctRate" fill="#82ca9d" radius={[4, 4, 0, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            </Box>
+
+            <Typography variant="h5" sx={{ mt: 6 }}>Average Answer Time (s)</Typography>
+            <Box sx={{ minHeight: 360, height: 400, width: '100%', maxWidth: '100%' }}>
+              <ResponsiveContainer width="100%" height="100%">
+                <LineChart data={questions.map((qLabel, idx) => {
+                  const total = players.length;
+                  const totalTime = players.reduce((acc, p) => {
+                    const ans = p.answers?.[idx];
+                    if (!ans?.answeredAt || !ans?.questionStartedAt) return acc;
+                    return acc + (new Date(ans.answeredAt) - new Date(ans.questionStartedAt));
+                  }, 0);
+                  const avg = totalTime / total / 1000;
+                  return {
+                    name: qLabel,
+                    avgTime: isNaN(avg) ? 0 : Number(avg.toFixed(1))
+                  };
+                })}>
+                  <XAxis dataKey="name" />
+                  <YAxis />
+                  <Tooltip />
+                  <Line type="monotone" dataKey="avgTime" stroke="#8884d8" strokeWidth={2} />
+                </LineChart>
+              </ResponsiveContainer>
+            </Box>
+          </>
+        )}
+
+        {/* Buttons to control the session, shown only if session is active */}
+        {sessionData.active && (
+          <Box sx={{ mt: 3, display: 'flex', gap: 2, flexDirection: { xs: 'column', sm: 'row' } }}>
+            <Button variant="contained" onClick={advance}>Advance to Next Question</Button>
+            <Button variant="outlined" color="error" onClick={stopGame}>Stop Game</Button>
           </Box>
+        )}
 
-          <Typography variant="h5" sx={{ mt: 6 }}>Average Answer Time (s)</Typography>
-          <Box sx={{ minHeight: 360, height: 400, width: '100%', maxWidth: '100%' }}>
-            <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={questions.map((qLabel, idx) => {
-                const total = players.length;
-                const totalTime = players.reduce((acc, p) => {
-                  const ans = p.answers?.[idx];
-                  if (!ans?.answeredAt || !ans?.questionStartedAt) return acc;
-                  return acc + (new Date(ans.answeredAt) - new Date(ans.questionStartedAt));
-                }, 0);
-                const avg = totalTime / total / 1000;
-                return {
-                  name: qLabel,
-                  avgTime: isNaN(avg) ? 0 : Number(avg.toFixed(1))
-                };
-              })}>
-                <XAxis dataKey="name" />
-                <YAxis />
-                <Tooltip />
-                <Line type="monotone" dataKey="avgTime" stroke="#8884d8" strokeWidth={2} />
-              </LineChart>
-            </ResponsiveContainer>
-          </Box>
-        </>
-      )}
-
-      {/* Buttons to control the session, shown only if session is active */}
-      {sessionData.active && (
-        <Box sx={{ mt: 3, display: 'flex', gap: 2, flexDirection: { xs: 'column', sm: 'row' } }}>
-          <Button variant="contained" onClick={advance}>Advance to Next Question</Button>
-          <Button variant="outlined" color="error" onClick={stopGame}>Stop Game</Button>
+        <Box sx={{ mt: 6 }}>
+          <AdvancedPointsExplanation />
         </Box>
-      )}
 
-      <Box sx={{ mt: 6 }}>
-        <AdvancedPointsExplanation />
-      </Box>
-
-    </Box>
+      </Box></>
   );
 };
 

@@ -142,6 +142,7 @@ const EditGame = () => {
         .then(() => {
           setQuestionName("");
           handleClose();
+          setQuestions(prev => [...prev, newQuestion]);
         });
     });
   };

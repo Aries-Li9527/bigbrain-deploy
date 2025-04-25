@@ -99,6 +99,15 @@ const SignUp = (props) => {
         </Alert>
       </Snackbar>
 
+      {/* ✅ 添加 Back 按钮 */}
+      <Button
+        variant="outlined"
+        sx={{ mt: 4 }}
+        onClick={() => navigate('/login')}
+      >
+        Back to Login
+      </Button>
+
       {/* Container for the registration form */}
       <Box
         component="form"
